@@ -19,6 +19,12 @@ Login screen (greeter nody-greeter, font SF Pro):
 
 ![Login screen](docs/preview-greeter.png)
 
+Logo del menu (ciliegia originale, al posto della mela):
+
+<img src="docs/cherry-logo.png" width="96" alt="Logo ciliegia">
+
+> Nota: gli screenshot qui sopra mostrano ancora il logo precedente; verranno aggiornati.
+
 ## Installazione
 
 ```bash
@@ -46,7 +52,7 @@ lui la password dove serve: pacchetti, greeter, plymouth). Dopo l'installazione 
 |---|---|
 | `--dpi N` | imposta la scala (`Xft.DPI`). Es. 144≈1.5×, 192≈2×, 240≈2.5×. Default: invariata. |
 | `--greeter` | installa il login screen nody-greeter (serve il `.deb`, vedi sotto). |
-| `--plymouth` | installa il boot splash Apple (rigenera l'initramfs). |
+| `--plymouth` | installa il boot splash ciliegia (rigenera l'initramfs). |
 | `--no-sf-pro` | non scaricare SF Pro, usa Inter. |
 | `--no-animations` | picom senza animazioni (niente compilazione da sorgente). |
 | `--no-whitesur` | non installare WhiteSur (lo dai per presente). |
@@ -84,7 +90,8 @@ Test senza logout: `nody-greeter --mode debug --theme macos` (in debug appare un
   variante xfwm4 (`-hdpi`/`-xhdpi`) in base a `--dpi`, ma il greeter è tarato per schermi ~2×.
 - **Altezza pannello**: il margine anti-sovrapposizione (`xfwm4/margin_top`) è 52px. Se cambi
   l'altezza del pannello, aggiornalo.
-- Il **blur** della menu bar si vede solo con un wallpaper colorato in alto (incluso Sonoma-light).
+- Il **blur** della menu bar si vede solo con un wallpaper colorato in alto (incluso un gradiente libero
+  `gradient-light.jpg`; rigeneralo con `assets/wallpapers/gen_wallpaper.py`).
 - Le animazioni richiedono `picom-anim` (fork FT-Labs) compilato da sorgente: l'installer chiede
   conferma; `--no-animations` per saltarlo.
 
@@ -114,11 +121,21 @@ assets/
   xfconf/         XML pannello + scorciatoie (layout della menu bar)
   panel-launchers/ launcher del pannello (Spotlight…)
   patches/        flatten-corners.py, battery-fix.sh
-  wallpapers/     Sonoma-light.jpg
+  icons/          cherry-logo.svg (logo del menu, sostituisce la mela)
+  wallpapers/     gradient-light/dark.jpg + gen_wallpaper.py (sfondi liberi)
 ```
 
-## Licenza
+## Marchi e licenza
 
-Script e config: MIT (o a tua scelta). I marchi/asset Apple (font SF Pro, loghi, wallpaper)
-restano di Apple e seguono le rispettive licenze — qui usati solo per personalizzazione.
-WhiteSur © vinceliuice (GPL-3.0).
+> **Non affiliato né approvato da Apple Inc.** Questo è un progetto di personalizzazione
+> *macOS-style* per Linux. "macOS", "SF Pro" e i marchi Apple appartengono ad Apple Inc.
+
+Per ridurre al minimo i problemi di copyright/marchio, il repo **non ridistribuisce asset Apple**:
+
+- **Logo**: niente mela morsicata → icona **ciliegia** originale (`assets/icons/cherry-logo.svg`,
+  e il logo del boot splash). Vedi `docs/cherry-logo.png`.
+- **Font SF Pro**: non incluso; l'installer lo **scarica** dalla CDN Apple sul tuo PC, oppure
+  usa Inter (`--no-sf-pro`).
+- **Wallpaper**: non sfondi macOS, ma **gradienti generati** (liberi).
+
+Codice e config: **MIT**. WhiteSur © vinceliuice (**GPL-3.0**), clonato a runtime.

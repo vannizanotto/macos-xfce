@@ -52,7 +52,7 @@
         <value type="string" value="google-chrome.desktop"/>
       </property>
       <property name="button-title" type="string" value=""/>
-      <property name="button-icon" type="string" value="@HOME@/.local/share/icons/apple-logo.svg"/>
+      <property name="button-icon" type="string" value="@HOME@/.local/share/icons/cherry-logo.svg"/>
       <property name="command-logout" type="string" value="@HOME@/.local/bin/macos-power-dialog"/>
       <property name="show-command-logout" type="bool" value="true"/>
     </property>

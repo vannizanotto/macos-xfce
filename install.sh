@@ -27,7 +27,7 @@ Uso: ./install.sh [opzioni]
                      Default: non cambia la scala.
   --yes              non interattivo (assume "sì").
   --greeter          installa anche il login screen (richiede nody-greeter, sudo).
-  --plymouth         installa anche il boot splash Apple (sudo, rigenera initramfs).
+  --plymouth         installa anche il boot splash ciliegia (sudo, rigenera initramfs).
   --no-sf-pro        non scaricare SF Pro (usa Inter).
   --no-animations    picom senza animazioni (niente build da sorgente).
   --no-whitesur      non clonare/installare WhiteSur (lo dai per già presente).
@@ -126,8 +126,8 @@ c_theme() {
       bash "$ASSETS/patches/battery-fix.sh" "$HOME/.local/share/icons/WhiteSur-light" || true
   fi
 
-  # icona mela per il menu
-  install -Dm644 "$ASSETS/icons/apple-logo.svg" "$HOME/.local/share/icons/apple-logo.svg"
+  # icona "ciliegia" per il menu (sostituisce il logo Apple)
+  install -Dm644 "$ASSETS/icons/cherry-logo.svg" "$HOME/.local/share/icons/cherry-logo.svg"
   # temi custom (notifiche + xfdashboard)
   mkdir -p "$HOME/.themes"; cp -r "$ASSETS/themes/macOS" "$HOME/.themes/"
   # gtk overrides (pannello scuro + mnemonics off)
@@ -285,7 +285,7 @@ build_picom_anim() {
 c_power() {
   step "Dialogo spegnimento stile macOS"
   install -Dm755 "$ASSETS/bin/macos-power-dialog" "$HOME/.local/bin/macos-power-dialog"
-  dim "il wiring (menu Apple + Ctrl+Alt+Fine) è nello XML del pannello/scorciatoie"
+  dim "il wiring (menu + Ctrl+Alt+Fine) è nello XML del pannello/scorciatoie"
   ok "power-dialog installato"
 }
 
@@ -329,14 +329,15 @@ c_notify() {
 }
 
 c_wallpaper() {
-  [ -f "$ASSETS/wallpapers/Sonoma-light.jpg" ] || { dim "nessun wallpaper nel pacchetto"; return 0; }
-  step "Wallpaper (serve uno sfondo colorato in alto per il blur)"
+  local wp="gradient-light.jpg"
+  [ -f "$ASSETS/wallpapers/$wp" ] || { dim "nessun wallpaper nel pacchetto"; return 0; }
+  step "Wallpaper (gradiente libero, colorato in alto per il blur)"
   mkdir -p "$HOME/.local/share/wallpapers"
-  cp "$ASSETS/wallpapers/Sonoma-light.jpg" "$HOME/.local/share/wallpapers/"
+  cp "$ASSETS/wallpapers/$wp" "$HOME/.local/share/wallpapers/"
   need_xfconf
   local p
   for p in $(xq -c xfce4-desktop -l 2>/dev/null | grep last-image || true); do
-    xq -c xfce4-desktop -p "$p" -s "$HOME/.local/share/wallpapers/Sonoma-light.jpg" 2>/dev/null || true
+    xq -c xfce4-desktop -p "$p" -s "$HOME/.local/share/wallpapers/$wp" 2>/dev/null || true
   done
   ok "wallpaper impostato"
 }
@@ -371,13 +372,17 @@ c_greeter() {
 }
 
 c_plymouth() {
-  step "Boot splash Apple (Plymouth)"
-  as_root mkdir -p /usr/share/plymouth/themes/apple
-  as_root cp "$ASSETS"/plymouth/* /usr/share/plymouth/themes/apple/ || { warn "copia plymouth ko"; return 0; }
+  step "Boot splash (Plymouth, logo ciliegia)"
+  as_root mkdir -p /usr/share/plymouth/themes/cherry
+  # solo i file runtime del tema (no generatore/preview)
+  as_root cp "$ASSETS"/plymouth/cherry.plymouth "$ASSETS"/plymouth/cherry.script \
+            "$ASSETS"/plymouth/logo.png "$ASSETS"/plymouth/track.png \
+            "$ASSETS"/plymouth/fill.png /usr/share/plymouth/themes/cherry/ \
+    || { warn "copia plymouth ko"; return 0; }
   as_root update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
-    default.plymouth /usr/share/plymouth/themes/apple/apple.plymouth 200 || true
+    default.plymouth /usr/share/plymouth/themes/cherry/cherry.plymouth 200 || true
   as_root update-alternatives --set default.plymouth \
-    /usr/share/plymouth/themes/apple/apple.plymouth || true
+    /usr/share/plymouth/themes/cherry/cherry.plymouth || true
   as_root update-initramfs -u || warn "update-initramfs fallito"
   ok "boot splash installato (visibile al riavvio)"
 }
