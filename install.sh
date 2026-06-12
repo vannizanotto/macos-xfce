@@ -57,6 +57,9 @@ while [ $# -gt 0 ]; do
     *) err "opzione sconosciuta: $1"; usage; exit 2;;
   esac
 done
+if [ -n "$DPI" ] && ! [[ "$DPI" =~ ^[0-9]+$ ]]; then
+  err "--dpi vuole un intero (es. 144, 192, 240), non: $DPI"; exit 2
+fi
 export ASSUME_YES
 
 if [ -n "$ONLY" ]; then
@@ -132,18 +135,20 @@ c_theme() {
   mkdir -p "$HOME/.themes"; cp -r "$ASSETS/themes/macOS" "$HOME/.themes/"
   # gtk overrides (pannello scuro + mnemonics off)
   mkdir -p "$HOME/.config/gtk-3.0"
+  backup_once "$HOME/.config/gtk-3.0/gtk.css"
+  backup_once "$HOME/.config/gtk-3.0/settings.ini"
   cp "$ASSETS/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css"
   cp "$ASSETS/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
 
   need_xfconf
   local var; var="$(theme_variant)"
-  xq -c xsettings -p /Net/ThemeName     -s WhiteSur-Light  --create
-  xq -c xsettings -p /Net/IconThemeName -s WhiteSur-light  --create
-  xq -c xsettings -p /Gtk/CursorThemeName -s WhiteSur-cursors --create
-  xq -c xsettings -p /Gtk/DecorationLayout -s "close,minimize,maximize:" --create
-  xq -c xsettings -p /Gtk/AutoMnemonics -s true --create
-  xq -c xfwm4 -p /general/theme -s "$var" --create
-  xq -c xfwm4 -p /general/button_layout -s "CHM|" --create
+  xq -c xsettings -p /Net/ThemeName     -t string -s WhiteSur-Light  --create
+  xq -c xsettings -p /Net/IconThemeName -t string -s WhiteSur-light  --create
+  xq -c xsettings -p /Gtk/CursorThemeName -t string -s WhiteSur-cursors --create
+  xq -c xsettings -p /Gtk/DecorationLayout -t string -s "close,minimize,maximize:" --create
+  xq -c xsettings -p /Gtk/AutoMnemonics -t bool -s true --create
+  xq -c xfwm4 -p /general/theme -t string -s "$var" --create
+  xq -c xfwm4 -p /general/button_layout -t string -s "CHM|" --create
   ok "tema applicato (xfwm4: $var)"
 }
 
@@ -170,11 +175,11 @@ c_sfpro() {
   fi
   need_xfconf
   if fc-list 2>/dev/null | grep -qi "SF Pro Text"; then
-    xq -c xsettings -p /Gtk/FontName -s "SF Pro Text 10" --create
-    xq -c xfwm4 -p /general/title_font -s "SF Pro Display Semibold 10" --create
+    xq -c xsettings -p /Gtk/FontName -t string -s "SF Pro Text 10" --create
+    xq -c xfwm4 -p /general/title_font -t string -s "SF Pro Display Semibold 10" --create
   else
-    xq -c xsettings -p /Gtk/FontName -s "Inter 10" --create
-    xq -c xfwm4 -p /general/title_font -s "Inter Bold 10" --create
+    xq -c xsettings -p /Gtk/FontName -t string -s "Inter 10" --create
+    xq -c xfwm4 -p /general/title_font -t string -s "Inter Bold 10" --create
   fi
 }
 
@@ -198,15 +203,23 @@ c_panel() {
 
 c_dock() {
   step "Dock (Plank)"
+  mkdir -p "$HOME/.config/autostart"
+  backup_once "$HOME/.config/autostart/plank.desktop"
   cat > "$HOME/.config/autostart/plank.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=Plank
 Exec=plank
+OnlyShowIn=XFCE;
+X-XFCE-Autostart-enabled=true
+StartupNotify=false
 Terminal=false
-X-GNOME-Autostart-enabled=true
 EOF
   if have dconf; then
+    # backup delle impostazioni dconf attuali (ripristino: dconf load /net/launchpad/plank/ < file)
+    local dbak="$HOME/.config/plank/dconf-plank.macos-bak"
+    mkdir -p "$HOME/.config/plank"
+    [ -e "$dbak" ] || dconf dump /net/launchpad/plank/ > "$dbak" 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/theme "'Transparent'" 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/position "'bottom'" 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/zoom-enabled true 2>/dev/null || true
@@ -223,7 +236,7 @@ c_scaling() {
   [ -z "$DPI" ] && { dim "scala non modificata (nessun --dpi)"; return 0; }
   step "Scala display (HiDPI)"
   need_xfconf
-  xq -c xsettings -p /Xft/DPI -s "$DPI" --create
+  xq -c xsettings -p /Xft/DPI -t int -s "$DPI" --create
   ok "Xft.DPI = $DPI  (riavvia Chrome/Electron per rileggerlo)"
 }
 
@@ -258,7 +271,7 @@ Terminal=false
 EOF
 
   need_xfconf
-  xq -c xfwm4 -p /general/use_compositing -s false --create
+  xq -c xfwm4 -p /general/use_compositing -t bool -s false --create
   # margine = altezza del pannello superiore (default 52; adatta se diverso)
   xq -c xfwm4 -p /general/margin_top -t int -s 52 --create
   # avvia subito
@@ -303,7 +316,7 @@ StartupNotify=false
 Terminal=false
 EOF
   if have xfconf-query; then
-    xq -c xfdashboard -p /theme -s macOS --create 2>/dev/null || true
+    xq -c xfdashboard -p /theme -t string -s macOS --create 2>/dev/null || true
   fi
   have xfdashboard && (pgrep -f xfdashboard >/dev/null || setsid xfdashboard --daemonize >/dev/null 2>&1 &) || true
   pgrep -f "$HOME/.local/bin/macos-hot-corners" >/dev/null || \
@@ -323,8 +336,8 @@ c_touchegg() {
 c_notify() {
   step "Notifiche stile macOS"
   need_xfconf
-  xq -c xfce4-notifyd -p /notify-location -s top-right --create 2>/dev/null || true
-  xq -c xfce4-notifyd -p /theme -s macOS --create 2>/dev/null || true
+  xq -c xfce4-notifyd -p /notify-location -t string -s top-right --create 2>/dev/null || true
+  xq -c xfce4-notifyd -p /theme -t string -s macOS --create 2>/dev/null || true
   ok "notifiche"
 }
 
