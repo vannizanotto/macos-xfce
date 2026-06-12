@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Lemon
+Description=macOS-style boot splash (lemon logo + progress bar)
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/lemon
+ScriptFile=/usr/share/plymouth/themes/lemon/lemon.script

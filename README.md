@@ -19,11 +19,11 @@ Login screen (greeter nody-greeter, font SF Pro):
 
 ![Login screen](docs/preview-greeter.png)
 
-Logo del menu (ciliegia originale, al posto della mela):
+Logo del menu (limone monocromo, al posto della mela):
 
-<img src="docs/cherry-logo.png" width="96" alt="Logo ciliegia">
+<img src="docs/lemon-logo.png" width="96" alt="Logo limone">
 
-> Nota: gli screenshot qui sopra mostrano ancora il logo precedente; verranno aggiornati.
+> Nota: gli screenshot del desktop/greeter qui sopra mostrano ancora il logo precedente; verranno aggiornati.
 
 ## Installazione
 
@@ -52,7 +52,7 @@ lui la password dove serve: pacchetti, greeter, plymouth). Dopo l'installazione 
 |---|---|
 | `--dpi N` | imposta la scala (`Xft.DPI`). Es. 144≈1.5×, 192≈2×, 240≈2.5×. Default: invariata. |
 | `--greeter` | installa il login screen nody-greeter (serve il `.deb`, vedi sotto). |
-| `--plymouth` | installa il boot splash ciliegia (rigenera l'initramfs). |
+| `--plymouth` | installa il boot splash limone (rigenera l'initramfs). |
 | `--no-sf-pro` | non scaricare SF Pro, usa Inter. |
 | `--no-animations` | picom senza animazioni (niente compilazione da sorgente). |
 | `--no-whitesur` | non installare WhiteSur (lo dai per presente). |
@@ -121,7 +121,7 @@ assets/
   xfconf/         XML pannello + scorciatoie (layout della menu bar)
   panel-launchers/ launcher del pannello (Spotlight…)
   patches/        flatten-corners.py, battery-fix.sh
-  icons/          cherry-logo.svg (logo del menu, sostituisce la mela)
+  icons/          lemon-logo.svg (logo del menu, Tabler Icons MIT)
   wallpapers/     gradient-light/dark.jpg + gen_wallpaper.py (sfondi liberi)
 ```
 
@@ -132,10 +132,12 @@ assets/
 
 Per ridurre al minimo i problemi di copyright/marchio, il repo **non ridistribuisce asset Apple**:
 
-- **Logo**: niente mela morsicata → icona **ciliegia** originale (`assets/icons/cherry-logo.svg`,
-  e il logo del boot splash). Vedi `docs/cherry-logo.png`.
+- **Logo**: niente mela morsicata → icona **limone** monocroma da
+  [Tabler Icons](https://tabler.io/icons) (MIT), usata nel menu e nel boot splash.
+  Vedi `docs/lemon-logo.png`.
 - **Font SF Pro**: non incluso; l'installer lo **scarica** dalla CDN Apple sul tuo PC, oppure
   usa Inter (`--no-sf-pro`).
 - **Wallpaper**: non sfondi macOS, ma **gradienti generati** (liberi).
 
-Codice e config: **MIT**. WhiteSur © vinceliuice (**GPL-3.0**), clonato a runtime.
+Codice e config: **MIT**. Crediti: **Tabler Icons** © Paweł Kuna (**MIT**),
+**WhiteSur** © vinceliuice (**GPL-3.0**, clonato a runtime).

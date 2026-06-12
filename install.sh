@@ -126,8 +126,8 @@ c_theme() {
       bash "$ASSETS/patches/battery-fix.sh" "$HOME/.local/share/icons/WhiteSur-light" || true
   fi
 
-  # icona "ciliegia" per il menu (sostituisce il logo Apple)
-  install -Dm644 "$ASSETS/icons/cherry-logo.svg" "$HOME/.local/share/icons/cherry-logo.svg"
+  # icona limone per il menu (Tabler Icons, sostituisce il logo Apple)
+  install -Dm644 "$ASSETS/icons/lemon-logo.svg" "$HOME/.local/share/icons/lemon-logo.svg"
   # temi custom (notifiche + xfdashboard)
   mkdir -p "$HOME/.themes"; cp -r "$ASSETS/themes/macOS" "$HOME/.themes/"
   # gtk overrides (pannello scuro + mnemonics off)
@@ -372,17 +372,17 @@ c_greeter() {
 }
 
 c_plymouth() {
-  step "Boot splash (Plymouth, logo ciliegia)"
-  as_root mkdir -p /usr/share/plymouth/themes/cherry
+  step "Boot splash (Plymouth, logo limone)"
+  as_root mkdir -p /usr/share/plymouth/themes/lemon
   # solo i file runtime del tema (no generatore/preview)
-  as_root cp "$ASSETS"/plymouth/cherry.plymouth "$ASSETS"/plymouth/cherry.script \
+  as_root cp "$ASSETS"/plymouth/lemon.plymouth "$ASSETS"/plymouth/lemon.script \
             "$ASSETS"/plymouth/logo.png "$ASSETS"/plymouth/track.png \
-            "$ASSETS"/plymouth/fill.png /usr/share/plymouth/themes/cherry/ \
+            "$ASSETS"/plymouth/fill.png /usr/share/plymouth/themes/lemon/ \
     || { warn "copia plymouth ko"; return 0; }
   as_root update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
-    default.plymouth /usr/share/plymouth/themes/cherry/cherry.plymouth 200 || true
+    default.plymouth /usr/share/plymouth/themes/lemon/lemon.plymouth 200 || true
   as_root update-alternatives --set default.plymouth \
-    /usr/share/plymouth/themes/cherry/cherry.plymouth || true
+    /usr/share/plymouth/themes/lemon/lemon.plymouth || true
   as_root update-initramfs -u || warn "update-initramfs fallito"
   ok "boot splash installato (visibile al riavvio)"
 }
