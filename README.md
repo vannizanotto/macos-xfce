@@ -19,7 +19,7 @@ Login screen (greeter nody-greeter, font SF Pro):
 
 ![Login screen](docs/preview-greeter.png)
 
-Logo del menu (limone monocromo, al posto della mela):
+Logo del menu (limone colorato, al posto della mela):
 
 <img src="docs/lemon-logo.png" width="96" alt="Logo limone">
 
@@ -121,7 +121,7 @@ assets/
   xfconf/         XML pannello + scorciatoie (layout della menu bar)
   panel-launchers/ launcher del pannello (Spotlight…)
   patches/        flatten-corners.py, battery-fix.sh
-  icons/          lemon-logo.svg (logo del menu, Tabler Icons MIT)
+  icons/          lemon-logo.svg (logo del menu, Noto Emoji Apache-2.0)
   wallpapers/     gradient-light/dark.jpg + gen_wallpaper.py (sfondi liberi)
 ```
 
@@ -132,12 +132,12 @@ assets/
 
 Per ridurre al minimo i problemi di copyright/marchio, il repo **non ridistribuisce asset Apple**:
 
-- **Logo**: niente mela morsicata → icona **limone** monocroma da
-  [Tabler Icons](https://tabler.io/icons) (MIT), usata nel menu e nel boot splash.
+- **Logo**: niente mela morsicata → icona **limone** colorata da
+  [Noto Emoji](https://github.com/googlefonts/noto-emoji) (Apache-2.0), usata nel menu e nel boot splash.
   Vedi `docs/lemon-logo.png`.
 - **Font SF Pro**: non incluso; l'installer lo **scarica** dalla CDN Apple sul tuo PC, oppure
   usa Inter (`--no-sf-pro`).
 - **Wallpaper**: non sfondi macOS, ma **gradienti generati** (liberi).
 
-Codice e config: **MIT**. Crediti: **Tabler Icons** © Paweł Kuna (**MIT**),
+Codice e config: **MIT**. Crediti: **Noto Emoji** © Google (**Apache-2.0**),
 **WhiteSur** © vinceliuice (**GPL-3.0**, clonato a runtime).

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Rigenera logo.png (limone bianco per lo splash su sfondo nero) rasterizzando
-# l'SVG del menu con Chrome headless (non servono rsvg/inkscape/imagemagick).
+# Rigenera logo.png (limone per lo splash) rasterizzando l'SVG del menu con
+# Chrome headless (non servono rsvg/inkscape/imagemagick). L'SVG è colorato
+# (Noto Emoji), quindi lo si rende così com'è su sfondo trasparente.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SVG="$HERE/../icons/lemon-logo.svg"
@@ -8,12 +9,12 @@ OUT="$HERE/logo.png"
 CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
 [ -n "$CHROME" ] || { echo "Chrome/Chromium non trovato"; exit 1; }
 
-D=$(grep -o 'd="[^"]*"' "$SVG" | head -1)
 TMP="$(mktemp -d)"
-cat > "$TMP/l.html" <<HTML
+cp "$SVG" "$TMP/logo.svg"
+cat > "$TMP/l.html" <<'HTML'
 <!doctype html><html><head><meta charset="utf-8">
-<style>html,body{margin:0;background:transparent}svg{display:block;width:220px;height:220px;margin:18px}</style>
-</head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff"><path $D/></svg></body></html>
+<style>html,body{margin:0;background:transparent}img{display:block;width:220px;height:220px;margin:18px}</style>
+</head><body><img src="logo.svg"></body></html>
 HTML
 "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
   --default-background-color=00000000 --window-size=256,256 \

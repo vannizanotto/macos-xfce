@@ -126,7 +126,7 @@ c_theme() {
       bash "$ASSETS/patches/battery-fix.sh" "$HOME/.local/share/icons/WhiteSur-light" || true
   fi
 
-  # icona limone per il menu (Tabler Icons, sostituisce il logo Apple)
+  # icona limone per il menu (Noto Emoji, sostituisce il logo Apple)
   install -Dm644 "$ASSETS/icons/lemon-logo.svg" "$HOME/.local/share/icons/lemon-logo.svg"
   # temi custom (notifiche + xfdashboard)
   mkdir -p "$HOME/.themes"; cp -r "$ASSETS/themes/macOS" "$HOME/.themes/"
