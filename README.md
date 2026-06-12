@@ -9,6 +9,16 @@ webkit) e **boot splash** (Plymouth).
 > Testato su Linux Mint 22.3 (Ubuntu 24.04 noble) + XFCE 4.18 + LightDM.
 > Su altri desktop/display-manager alcune parti vanno adattate.
 
+## Anteprima
+
+Desktop (menu bar con global menu, traffic light, dock Plank):
+
+![Desktop](docs/preview-desktop.png)
+
+Login screen (greeter nody-greeter, font SF Pro):
+
+![Login screen](docs/preview-greeter.png)
+
 ## Installazione
 
 ```bash
