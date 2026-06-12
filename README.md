@@ -11,19 +11,11 @@ webkit) e **boot splash** (Plymouth).
 
 ## Anteprima
 
-Desktop (menu bar con global menu, traffic light, dock Plank):
-
-![Desktop](docs/preview-desktop.png)
-
-Login screen (greeter nody-greeter, font SF Pro):
-
-![Login screen](docs/preview-greeter.png)
-
-Logo del menu (limone colorato, al posto della mela):
+Logo del menu (limone, al posto della mela):
 
 <img src="docs/lemon-logo.png" width="96" alt="Logo limone">
 
-> Nota: gli screenshot del desktop/greeter qui sopra mostrano ancora il logo precedente; verranno aggiornati.
+> Gli screenshot di desktop e login screen verranno aggiunti (versioni "pulite", senza dati personali).
 
 ## Installazione
 
