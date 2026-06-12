@@ -112,8 +112,10 @@ c_theme() {
   if [ "$DO_WHITESUR" = 1 ]; then
     local tmp; tmp="$(mktemp -d)"
     if confirm "Clonare e installare WhiteSur (GTK/icone/cursori)?"; then
+      # SHELL_VERSION=48: senza gnome-shell installato l'installer upstream lascia
+      # la variabile vuota e sassc fallisce su "$GNOME_SHELL: ;" (bug vinceliuice)
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git "$tmp/gtk" \
-        && (cd "$tmp/gtk" && ./install.sh -l -c Light -t default) || warn "WhiteSur GTK ko"
+        && (cd "$tmp/gtk" && SHELL_VERSION=48 ./install.sh -l -c Light -t default) || warn "WhiteSur GTK ko"
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-icon-theme.git "$tmp/icon" \
         && (cd "$tmp/icon" && ./install.sh) || warn "WhiteSur icone ko"
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-cursors.git "$tmp/cur" \
