@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Apple
+Description=macOS-style boot splash (Apple logo + progress bar)
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/apple
+ScriptFile=/usr/share/plymouth/themes/apple/apple.script

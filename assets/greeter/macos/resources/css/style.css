@@ -1,0 +1,210 @@
+/* ===== macOS-style login (Sonoma) per nody-greeter ===== */
+
+/* San Francisco Pro, impacchettato nel tema (lightdm non legge ~/.local) */
+@font-face { font-family: "SF Pro Display"; font-weight: 300; src: url("../font/SF-Pro-Display-Light.otf") format("opentype"); }
+@font-face { font-family: "SF Pro Display"; font-weight: 400; src: url("../font/SF-Pro-Display-Regular.otf") format("opentype"); }
+@font-face { font-family: "SF Pro Display"; font-weight: 500; src: url("../font/SF-Pro-Display-Medium.otf") format("opentype"); }
+@font-face { font-family: "SF Pro Display"; font-weight: 600; src: url("../font/SF-Pro-Display-Semibold.otf") format("opentype"); }
+@font-face { font-family: "SF Pro Text"; font-weight: 400; src: url("../font/SF-Pro-Text-Regular.otf") format("opentype"); }
+
+* {
+  font-family: "SF Pro Text", "SF Pro Display", "Inter Display", "Inter", -apple-system, "Helvetica Neue", sans-serif;
+  cursor: default;
+  -webkit-user-select: none;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: #1c1c1e url('../img/logon.png') center / cover no-repeat;
+  display: table;
+  width: 100%;
+  color: #fff;
+  font-size: 10pt;
+  overflow: hidden;
+}
+
+/* velo scuro leggero per leggibilità sul wallpaper */
+.cover {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.30);
+  z-index: -1;
+}
+
+/* ---- Orologio + data, in alto al centro ---- */
+.clock {
+  position: fixed;
+  top: 6vh;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.clock .time {
+  font-family: "SF Pro Display", "SF Pro Text", "Inter Display", "Inter", -apple-system, sans-serif;
+  font-size: 94px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+.clock .date {
+  font-family: "SF Pro Display", "SF Pro Text", "Inter Display", "Inter", -apple-system, sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+/* ---- Area centrale: avatar + password ---- */
+.login_content { display: table-row; }
+.login_container {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+.center { text-align: center; }
+
+.user {
+  display: inline-block;
+  margin: 0 20px;
+  position: relative;
+  text-align: center;
+}
+.user:active { opacity: 0.6; }
+
+.user_image,
+.user_image_wrapper {
+  width: 110px;
+  height: 110px;
+}
+.user_image {
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+.user_name {
+  display: block;
+  margin-top: 14px;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter Display", "Inter", -apple-system, sans-serif;
+  font-size: 21px;
+  font-weight: 600;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Pillola password (stile macOS) ---- */
+.pass {
+  position: relative;
+  margin-top: 16px;
+  text-align: center;
+}
+.pass_pill {
+  display: inline-flex;
+  align-items: center;
+  width: 380px;
+  height: 56px;
+  padding: 0 8px 0 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+}
+#password_entry {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #fff;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter Display", "Inter", -apple-system, sans-serif;
+  font-size: 26px;
+  text-align: center;
+}
+#password_entry::placeholder { color: rgba(255, 255, 255, 0.72); }
+
+.pass_arrow {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter Display", "Inter", -apple-system, sans-serif;
+  font-size: 28px;
+  line-height: 44px;
+  transition: background 0.15s ease;
+}
+.pass_arrow:hover { background: rgba(255, 255, 255, 0.45); }
+
+#session_container { margin-top: 14px; font-size: 18px; }
+
+/* ---- Messaggi / errori ---- */
+#message {
+  position: fixed;
+  bottom: 150px;
+  width: 100%;
+  text-align: center;
+  -webkit-transition: visibility 0s, opacity 0.3s;
+}
+#message_content {
+  text-align: center;
+  font-size: 14px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+#message_content.error { color: #ff6b6b; }
+
+/* ---- Pulsanti alimentazione in basso ---- */
+.footer {
+  position: fixed;
+  bottom: 34px;
+  width: 100%;
+  text-align: center;
+}
+.action {
+  display: inline-block;
+  width: 90px;
+  margin: 0 26px;
+  opacity: 0.92;
+  vertical-align: top;
+}
+.action:active { opacity: 0.5; }
+.action_image_wrapper {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.action_image { width: 22px; height: 22px; }
+.action_label {
+  display: block;
+  color: #fff;
+  font-size: 13px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- helper visibilità/transizioni ---- */
+.smooth { -webkit-transition: visibility 0s, opacity 0.3s, left 0.4s; }
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition-delay: 0.3s, 0s, 0s;
+}
+.passhidden { opacity: 0; visibility: hidden; }
+.passsmooth { -webkit-transition: opacity 0.2s; }
+a { text-decoration: none; }

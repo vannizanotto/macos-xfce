@@ -1,0 +1,8 @@
+/* Menu bar stile macOS: testo e icone scuri sulla barra chiara translucida.
+   Selettori limitati al pannello xfce, non tocca le altre app. */
+#XfcePanelWindow,
+#XfcePanelWindow *,
+.xfce4-panel,
+.xfce4-panel * {
+  color: #1d1d1f;
+}

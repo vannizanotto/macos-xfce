@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Spotlight
+Comment=Ricerca (Spotlight)
+Exec=xfce4-appfinder --collapsed
+Icon=system-search-symbolic
+Terminal=false
+StartupNotify=false

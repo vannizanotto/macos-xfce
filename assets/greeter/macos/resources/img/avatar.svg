@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6aa1ff"/>
+      <stop offset="1" stop-color="#2a6df0"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="128" fill="url(#g)"/>
+  <text x="128" y="130" font-family="'Inter Display','Inter',-apple-system,sans-serif"
+        font-size="132" font-weight="600" fill="#ffffff"
+        text-anchor="middle" dominant-baseline="central">V</text>
+</svg>

@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# Hot corners stile macOS per XFCE. Polla la posizione del mouse (xdotool) e
+# attiva un'azione quando il cursore tocca un vertice dello schermo.
+import subprocess, time
+
+EDGE = 6        # px di tolleranza dal vertice
+POLL = 0.18     # secondi tra un controllo e l'altro
+
+# Azione per ogni angolo: "show-desktop" | "expose" | "lock" | "none"
+# (top-left, top-right, bottom-left, bottom-right)
+CORNERS = {
+    "tl": "none",
+    "tr": "show-desktop",
+    "bl": "expose",        # Mission Control / esposé finestre (xfdashboard)
+    "br": "lock",          # blocca schermo
+}
+
+_state = {"show": False}
+
+def screen_size():
+    out = subprocess.run(["xdotool", "getdisplaygeometry"],
+                         capture_output=True, text=True).stdout.split()
+    return int(out[0]), int(out[1])
+
+def mouse():
+    out = subprocess.run(["xdotool", "getmouselocation", "--shell"],
+                         capture_output=True, text=True).stdout
+    d = {}
+    for line in out.splitlines():
+        if "=" in line:
+            k, v = line.split("=", 1)
+            try: d[k] = int(v)
+            except ValueError: pass
+    return d.get("X", 0), d.get("Y", 0)
+
+def do(action):
+    if action == "show-desktop":
+        _state["show"] = not _state["show"]
+        subprocess.run(["wmctrl", "-k", "on" if _state["show"] else "off"])
+    elif action == "expose":
+        subprocess.run(["xfdashboard", "--toggle"])
+    elif action == "lock":
+        subprocess.run(["xflock4"])
+
+def corner(x, y, W, H):
+    left, right = x <= EDGE, x >= W - 1 - EDGE
+    top, bottom = y <= EDGE, y >= H - 1 - EDGE
+    if top and left: return "tl"
+    if top and right: return "tr"
+    if bottom and left: return "bl"
+    if bottom and right: return "br"
+    return None
+
+def main():
+    W, H = screen_size()
+    armed = True
+    while True:
+        try:
+            c = corner(*mouse(), W, H)
+            if c and armed:
+                act = CORNERS.get(c, "none")
+                if act != "none":
+                    do(act)
+                armed = False          # spara una volta sola finché non si esce
+            elif not c:
+                armed = True
+        except Exception:
+            pass
+        time.sleep(POLL)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,11 @@
+#!/bin/bash
+# Deploy del tema di login macOS di Vanni dallo staging (~/Scaricati) alle
+# posizioni di sistema. Comportamento FISSO: ignora qualsiasi argomento.
+set -e
+SRC=@SRC@
+install -d -m 755 /usr/share/web-greeter/themes/macos
+cp -rT "$SRC/macos" /usr/share/web-greeter/themes/macos
+cp "$SRC/web-greeter.yml" /etc/lightdm/web-greeter.yml
+cp "$SRC/nody-greeter.conf" /etc/lightdm/lightdm.conf.d/99-nody-greeter.conf
+chown -R root:root /usr/share/web-greeter/themes/macos /etc/lightdm/web-greeter.yml /etc/lightdm/lightdm.conf.d/99-nody-greeter.conf
+echo "tema macOS aggiornato"
