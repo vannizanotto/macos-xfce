@@ -1,114 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <channel name="xfce4-panel" version="1.0">
-  <property name="configver" type="empty"/>
-  <property name="panels" type="empty">
+  <property name="configver" type="int" value="2"/>
+  <property name="panels" type="array">
+    <value type="int" value="1"/>
     <property name="panel-1" type="empty">
       <property name="position" type="string" value="p=1;x=0;y=0"/>
-      <property name="length" type="empty"/>
-      <property name="position-locked" type="empty"/>
+      <property name="position-locked" type="bool" value="true"/>
       <property name="size" type="uint" value="50"/>
+      <property name="icon-size" type="uint" value="42"/>
+      <property name="length" type="uint" value="100"/>
+      <property name="mode" type="uint" value="0"/>
+      <property name="autohide-behavior" type="uint" value="0"/>
+      <property name="enable-struts" type="bool" value="true"/>
       <property name="background-style" type="uint" value="1"/>
       <property name="background-alpha" type="uint" value="65"/>
-      <property name="enter-opacity" type="empty"/>
-      <property name="leave-opacity" type="empty"/>
-      <property name="icon-size" type="uint" value="42"/>
+      <property name="background-rgba" type="array">
+        <value type="double" value="0.96"/>
+        <value type="double" value="0.96"/>
+        <value type="double" value="0.97"/>
+        <value type="double" value="0.42"/>
+      </property>
       <property name="plugin-ids" type="array">
         <value type="int" value="1"/>
         <value type="int" value="15"/>
         <value type="int" value="7"/>
         <value type="int" value="20"/>
         <value type="int" value="8"/>
-        <value type="int" value="9"/>
-        <value type="int" value="10"/>
         <value type="int" value="11"/>
         <value type="int" value="12"/>
         <value type="int" value="13"/>
       </property>
-      <property name="autohide-behavior" type="int" value="0"/>
-      <property name="mode" type="int" value="0"/>
-      <property name="enable-struts" type="bool" value="true"/>
-      <property name="background-rgba" type="array">
-        <value type="double" value="0.95999999999999996"/>
-        <value type="double" value="0.95999999999999996"/>
-        <value type="double" value="0.96999999999999997"/>
-        <value type="double" value="0.41999999999999998"/>
-      </property>
     </property>
   </property>
   <property name="plugins" type="empty">
-    <property name="plugin-1" type="empty">
+    <property name="plugin-1" type="string" value="whiskermenu">
+      <property name="button-title" type="string" value=""/>
+      <property name="button-icon" type="string" value="@HOME@/.local/share/icons/lemon-logo.svg"/>
+      <property name="show-button-title" type="bool" value="false"/>
+      <property name="command-logout" type="string" value="@HOME@/.local/bin/macos-power-dialog"/>
+      <property name="show-command-logout" type="bool" value="true"/>
       <property name="favorites" type="array">
         <value type="string" value="firefox.desktop"/>
         <value type="string" value="thunderbird.desktop"/>
-        <value type="string" value="pix.desktop"/>
-        <value type="string" value="org.gnome.Rhythmbox3.desktop"/>
-        <value type="string" value="org.gnome.Calculator.desktop"/>
-        <value type="string" value="mintinstall.desktop"/>
+        <value type="string" value="org.xfce.thunar.desktop"/>
+        <value type="string" value="xfce4-terminal.desktop"/>
         <value type="string" value="xfce4-taskmanager.desktop"/>
       </property>
-      <property name="recent" type="array">
-        <value type="string" value="xfce4-terminal.desktop"/>
-        <value type="string" value="google-chrome.desktop"/>
-      </property>
-      <property name="button-title" type="string" value=""/>
-      <property name="button-icon" type="string" value="@HOME@/.local/share/icons/lemon-logo.svg"/>
-      <property name="command-logout" type="string" value="@HOME@/.local/bin/macos-power-dialog"/>
-      <property name="show-command-logout" type="bool" value="true"/>
     </property>
-    <property name="plugin-2" type="empty"/>
-    <property name="plugin-3" type="empty">
-      <property name="items" type="array">
-        <value type="string" value="17811139401.desktop"/>
-      </property>
+    <property name="plugin-7" type="string" value="separator">
+      <property name="expand" type="bool" value="true"/>
+      <property name="style" type="uint" value="0"/>
     </property>
-    <property name="plugin-4" type="empty">
-      <property name="items" type="array">
-        <value type="string" value="17811139402.desktop"/>
-      </property>
+    <property name="plugin-8" type="string" value="systray">
+      <property name="icon-size" type="int" value="20"/>
+      <property name="show-frame" type="bool" value="false"/>
+      <property name="square-icons" type="bool" value="true"/>
     </property>
-    <property name="plugin-5" type="empty">
-      <property name="items" type="array">
-        <value type="string" value="17811139403.desktop"/>
-      </property>
+    <property name="plugin-11" type="string" value="power-manager-plugin"/>
+    <property name="plugin-12" type="string" value="pulseaudio">
+      <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
+      <property name="enable-mpris" type="bool" value="true"/>
     </property>
-    <property name="plugin-6" type="empty">
-      <property name="show-handle" type="empty"/>
-      <property name="middle-click" type="empty"/>
-    </property>
-    <property name="plugin-7" type="empty">
-      <property name="expand" type="empty"/>
-      <property name="style" type="int" value="0"/>
-    </property>
-    <property name="plugin-8" type="empty">
-      <property name="icon-size" type="empty"/>
-      <property name="names-visible" type="empty"/>
-      <property name="show-frame" type="empty"/>
-      <property name="known-items" type="array">
-        <value type="string" value="blueman"/>
-      </property>
-      <property name="known-legacy-items" type="array">
-        <value type="string" value="mintupdate.py"/>
-        <value type="string" value="tray.py"/>
-        <value type="string" value="applet networkmanager"/>
-      </property>
-    </property>
-    <property name="plugin-9" type="empty"/>
-    <property name="plugin-10" type="empty"/>
-    <property name="plugin-11" type="empty"/>
-    <property name="plugin-12" type="empty">
-      <property name="enable-keyboard-shortcuts" type="empty"/>
-      <property name="enable-mpris" type="empty"/>
-      <property name="mixer-command" type="empty"/>
-      <property name="show-notifications" type="empty"/>
-    </property>
-    <property name="plugin-13" type="empty">
-      <property name="digital-time-format" type="string" value="%a %d %b  %H:%M"/>
+    <property name="plugin-13" type="string" value="clock">
       <property name="digital-layout" type="uint" value="3"/>
-      <property name="digital-date-font" type="empty"/>
+      <property name="digital-time-format" type="string" value="%a %d %b  %H:%M"/>
       <property name="digital-time-font" type="string" value="Inter 10"/>
     </property>
-    <property name="plugin-14" type="empty"/>
     <property name="plugin-15" type="string" value="appmenu"/>
     <property name="plugin-20" type="string" value="launcher">
       <property name="items" type="array">

@@ -200,6 +200,9 @@ c_panel() {
   step "Pannello (menu bar) + scorciatoie"
   local X="$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
   mkdir -p "$X" "$HOME/.config/xfce4/panel"
+  # icona del bottone whiskermenu: la menu bar la referenzia, senza resta vuoto
+  mkdir -p "$HOME/.local/share/icons"
+  cp "$ASSETS/icons/lemon-logo.svg" "$HOME/.local/share/icons/" 2>/dev/null || true
   # launcher (spotlight ecc.)
   cp -r "$ASSETS"/panel-launchers/launcher-* "$HOME/.config/xfce4/panel/" 2>/dev/null || true
   for f in "$HOME"/.config/xfce4/panel/launcher-*/*.desktop; do
@@ -234,8 +237,23 @@ EOF
   if ! grep -q '^UBUNTU_MENUPROXY=' /etc/environment 2>/dev/null; then
     as_root sh -c 'echo "UBUNTU_MENUPROXY=1" >> /etc/environment'
   fi
-  warn "pannello e scorciatoie si applicano al PROSSIMO login (xfconfd rilegge gli XML allo start sessione)"
-  ok "pannello configurato"
+  # APPLICAZIONE: copiare l'XML non basta. xfconfd tiene la config in RAM e al
+  # logout RISCRIVE gli XML coi valori vecchi, vanificando la copia (il pannello
+  # non cambia mai). Per applicare davvero: quit del pannello + kill di xfconfd;
+  # alla ripartenza xfconfd rilegge gli XML appena scritti. Le impostazioni di
+  # xsettings/xfwm4 fatte prima via xfconf-query sono già state scaricate su
+  # disco da xfconfd, quindi vengono ricaricate intatte.
+  if [ -n "${DISPLAY:-}" ] && have xfce4-panel; then
+    sleep 1
+    xfce4-panel --quit 2>/dev/null || true
+    pkill -x xfconfd 2>/dev/null || true
+    sleep 1
+    setsid xfce4-panel >/dev/null 2>&1 &
+    ok "pannello applicato (menu bar, systray, scorciatoie)"
+  else
+    warn "nessun DISPLAY: pannello configurato, si applica al prossimo login"
+    ok "pannello configurato"
+  fi
 }
 
 c_dock() {
