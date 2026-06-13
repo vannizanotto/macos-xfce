@@ -419,11 +419,25 @@ c_wallpaper() {
   step "Wallpaper (gradiente libero, colorato in alto per il blur)"
   mkdir -p "$HOME/.local/share/wallpapers"
   cp "$ASSETS/wallpapers/$wp" "$HOME/.local/share/wallpapers/"
+  local img="$HOME/.local/share/wallpapers/$wp"
   need_xfconf
-  local p
-  for p in $(xq -c xfce4-desktop -l 2>/dev/null | grep last-image || true); do
-    xq -c xfce4-desktop -p "$p" -s "$HOME/.local/share/wallpapers/$wp" 2>/dev/null || true
+  # NB: serve ANCHE image-style (5=scaled): con la sola last-image l'immagine
+  # non viene disegnata e il desktop resta nero.
+  local p found=0
+  for p in $(xq -c xfce4-desktop -l 2>/dev/null | grep 'last-image$' || true); do
+    xq -c xfce4-desktop -p "$p" -t string -s "$img" --create 2>/dev/null || true
+    xq -c xfce4-desktop -p "${p%last-image}image-style" -t int -s 5 --create 2>/dev/null || true
+    found=1
   done
+  # sistema vergine: nessuna proprietà backdrop ancora -> creala per i monitor attivi
+  if [ "$found" = 0 ] && [ -n "${DISPLAY:-}" ] && have xrandr; then
+    local mon
+    for mon in $(xrandr 2>/dev/null | awk '/ connected/{print $1}'); do
+      xq -c xfce4-desktop -p "/backdrop/screen0/monitor$mon/workspace0/last-image"  -t string -s "$img" --create 2>/dev/null || true
+      xq -c xfce4-desktop -p "/backdrop/screen0/monitor$mon/workspace0/image-style" -t int    -s 5    --create 2>/dev/null || true
+    done
+  fi
+  [ -n "${DISPLAY:-}" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
   ok "wallpaper impostato"
 }
 
