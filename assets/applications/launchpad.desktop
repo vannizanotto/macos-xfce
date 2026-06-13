@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Launchpad
+Comment=Mostra tutte le applicazioni
+Exec=xfce4-appfinder
+Icon=@HOME@/.local/share/icons/launchpad.svg
+Terminal=false
+Categories=Utility;

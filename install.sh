@@ -97,13 +97,22 @@ need_xfconf() { have xfconf-query || { err "xfconf-query non trovato: sei in XFC
 
 c_packages() {
   step "Pacchetti di sistema (apt)"
-  local pkgs="plank xfce4-appmenu-plugin appmenu-gtk-module vala-panel-appmenu \
-    picom xfdashboard touchegg xdotool wmctrl xprop x11-utils \
+  local pkgs="plank dconf-cli xfce4-appmenu-plugin appmenu-gtk2-module appmenu-gtk3-module vala-panel-appmenu \
+    appmenu-registrar appmenu-gtk-module-common \
+    picom xfdashboard touchegg xdotool wmctrl x11-utils \
     fonts-inter fonts-jetbrains-mono python3-gi gir1.2-gtk-3.0 \
     python3-cairo python3-pil git p7zip-full curl"
   as_root apt-get update -y || warn "apt update fallito (continuo)"
+  # Pre-filtro: tengo solo i pacchetti realmente disponibili. Senza questo, un
+  # singolo nome inesistente fa abortire l'intera transazione apt e NON installa
+  # nulla (git/curl inclusi), rompendo a cascata tema, font e build di picom.
+  local p avail="" missing=""
+  for p in $pkgs; do
+    if apt-cache show "$p" >/dev/null 2>&1; then avail="$avail $p"; else missing="$missing $p"; fi
+  done
+  [ -n "$missing" ] && warn "pacchetti non disponibili, saltati:$missing"
   # shellcheck disable=SC2086
-  as_root apt-get install -y $pkgs || warn "alcuni pacchetti non installati"
+  as_root apt-get install -y $avail || warn "alcuni pacchetti non installati"
   ok "pacchetti"
 }
 
@@ -112,10 +121,12 @@ c_theme() {
   if [ "$DO_WHITESUR" = 1 ]; then
     local tmp; tmp="$(mktemp -d)"
     if confirm "Clonare e installare WhiteSur (GTK/icone/cursori)?"; then
-      # SHELL_VERSION=48: senza gnome-shell installato l'installer upstream lascia
-      # la variabile vuota e sassc fallisce su "$GNOME_SHELL: ;" (bug vinceliuice)
+      # SHELL_VERSION/GNOME_VERSION: senza gnome-shell installato l'installer upstream
+      # lascia queste variabili vuote e la compilazione del tema gnome-shell fallisce.
+      # NB: NIENTE -l/--libadwaita: quel flag installa SOLO la config gtk-4.0 per
+      # libadwaita (app GNOME), non il tema GTK3/xfwm4 che serve a XFCE.
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git "$tmp/gtk" \
-        && (cd "$tmp/gtk" && SHELL_VERSION=48 ./install.sh -l -c Light -t default) || warn "WhiteSur GTK ko"
+        && (cd "$tmp/gtk" && SHELL_VERSION=48 GNOME_VERSION=48-0 ./install.sh -c Light -t default) || warn "WhiteSur GTK ko"
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-icon-theme.git "$tmp/icon" \
         && (cd "$tmp/icon" && ./install.sh) || warn "WhiteSur icone ko"
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-cursors.git "$tmp/cur" \
@@ -199,6 +210,30 @@ c_panel() {
     backup_once "$X/$ch.xml"
     sed "s#@HOME@#$HOME#g" "$ASSETS/xfconf/$ch.xml" > "$X/$ch.xml"
   done
+  # AppMenu registrar: il pannello usa il plugin 'appmenu' (menu globale dell'app
+  # nella menu bar). Senza questo servizio in autostart il plugin resta VUOTO e
+  # la barra superiore appare rotta. Richiede il pacchetto appmenu-registrar.
+  mkdir -p "$HOME/.config/autostart"
+  backup_once "$HOME/.config/autostart/appmenu-registrar.desktop"
+  cat > "$HOME/.config/autostart/appmenu-registrar.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=AppMenu Registrar
+Exec=/usr/libexec/vala-panel/appmenu-registrar
+X-GNOME-Autostart-enabled=true
+Terminal=false
+EOF
+  # Il menu globale compare SOLO se le app GTK caricano il modulo appmenu-gtk
+  # (via GTK_MODULES) con UBUNTU_MENUPROXY=1. vala-panel-appmenu installa
+  # /etc/profile.d/vala-panel-appmenu.sh, ma la sessione XFCE non è sempre una
+  # login-shell che lo sourcizza: scriviamo le variabili in /etc/environment
+  # (lette da PAM per OGNI sessione). Senza questo il plugin appmenu resta vuoto.
+  if ! grep -q 'appmenu-gtk-module' /etc/environment 2>/dev/null; then
+    as_root sh -c 'echo "GTK_MODULES=appmenu-gtk-module" >> /etc/environment'
+  fi
+  if ! grep -q '^UBUNTU_MENUPROXY=' /etc/environment 2>/dev/null; then
+    as_root sh -c 'echo "UBUNTU_MENUPROXY=1" >> /etc/environment'
+  fi
   warn "pannello e scorciatoie si applicano al PROSSIMO login (xfconfd rilegge gli XML allo start sessione)"
   ok "pannello configurato"
 }
@@ -217,18 +252,34 @@ X-XFCE-Autostart-enabled=true
 StartupNotify=false
 Terminal=false
 EOF
+  # Tema Plank "WhiteSur" (asset utente: a livello di sistema esistono solo
+  # Default/Matte/Transparent; WhiteSur va installato in ~/.local).
+  mkdir -p "$HOME/.local/share/plank/themes/WhiteSur"
+  cp "$ASSETS/plank/themes/WhiteSur/dock.theme" "$HOME/.local/share/plank/themes/WhiteSur/"
+
+  # Launchpad: .desktop custom + icona (primo item del dock).
+  mkdir -p "$HOME/.local/share/applications" "$HOME/.local/share/icons"
+  cp "$ASSETS/icons/launchpad.svg" "$HOME/.local/share/icons/" 2>/dev/null || true
+  sed "s#@HOME@#$HOME#g" "$ASSETS/applications/launchpad.desktop" > "$HOME/.local/share/applications/launchpad.desktop"
+
+  # Voci del dock (dockitem) — ordine stile macOS, con templating @HOME@.
+  mkdir -p "$HOME/.config/plank/dock1/launchers"
+  for f in "$ASSETS"/plank/launchers/*.dockitem; do
+    sed "s#@HOME@#$HOME#g" "$f" > "$HOME/.config/plank/dock1/launchers/$(basename "$f")"
+  done
+
   if have dconf; then
     # backup delle impostazioni dconf attuali (ripristino: dconf load /net/launchpad/plank/ < file)
     local dbak="$HOME/.config/plank/dconf-plank.macos-bak"
     mkdir -p "$HOME/.config/plank"
     [ -e "$dbak" ] || dconf dump /net/launchpad/plank/ > "$dbak" 2>/dev/null || true
-    dconf write /net/launchpad/plank/docks/dock1/theme "'Transparent'" 2>/dev/null || true
+    dconf write /net/launchpad/plank/docks/dock1/theme "'WhiteSur'" 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/position "'bottom'" 2>/dev/null || true
+    dconf write /net/launchpad/plank/docks/dock1/icon-size 80 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/zoom-enabled true 2>/dev/null || true
-    # cestino
-    mkdir -p "$HOME/.config/plank/dock1/launchers"
-    printf '[PlankDockItemPreferences]\nLauncher=docklet://trash\n' \
-      > "$HOME/.config/plank/dock1/launchers/trash.dockitem"
+    dconf write /net/launchpad/plank/docks/dock1/zoom-percent 150 2>/dev/null || true
+    dconf write /net/launchpad/plank/docks/dock1/dock-items \
+      "['launchpad.dockitem', 'google-chrome.dockitem', 'thunar.dockitem', 'libreoffice-writer.dockitem', 'libreoffice-calc.dockitem', 'xfce4-terminal.dockitem', 'trash.dockitem']" 2>/dev/null || true
   fi
   have plank && (pgrep -x plank >/dev/null || setsid plank >/dev/null 2>&1 &) || true
   ok "plank"
