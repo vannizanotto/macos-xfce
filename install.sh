@@ -208,10 +208,17 @@ c_panel() {
   for f in "$HOME"/.config/xfce4/panel/launcher-*/*.desktop; do
     [ -e "$f" ] && sed -i "s#@HOME@#$HOME#g" "$f"
   done
+  # Dimensioni pannello in base al DPI (i valori HiDPI su lodpi sembrano "2x").
+  local psize=28 picon=22
+  if [ -n "$DPI" ]; then
+    if   [ "$DPI" -ge 216 ]; then psize=50; picon=42
+    elif [ "$DPI" -ge 144 ]; then psize=40; picon=32; fi
+  fi
   # XML pannello + scorciatoie (sorgente di verità del layout)
   for ch in xfce4-panel xfce4-keyboard-shortcuts; do
     backup_once "$X/$ch.xml"
-    sed "s#@HOME@#$HOME#g" "$ASSETS/xfconf/$ch.xml" > "$X/$ch.xml"
+    sed -e "s#@HOME@#$HOME#g" -e "s#@PANEL_SIZE@#$psize#g" -e "s#@PANEL_ICON@#$picon#g" \
+      "$ASSETS/xfconf/$ch.xml" > "$X/$ch.xml"
   done
   # AppMenu registrar: il pannello usa il plugin 'appmenu' (menu globale dell'app
   # nella menu bar). Senza questo servizio in autostart il plugin resta VUOTO e
@@ -291,9 +298,15 @@ EOF
     local dbak="$HOME/.config/plank/dconf-plank.macos-bak"
     mkdir -p "$HOME/.config/plank"
     [ -e "$dbak" ] || dconf dump /net/launchpad/plank/ > "$dbak" 2>/dev/null || true
+    # icona del dock in base al DPI (80 su HiDPI sembra enorme su lodpi)
+    local dksz=48
+    if [ -n "$DPI" ]; then
+      if   [ "$DPI" -ge 216 ]; then dksz=80
+      elif [ "$DPI" -ge 144 ]; then dksz=64; fi
+    fi
     dconf write /net/launchpad/plank/docks/dock1/theme "'WhiteSur'" 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/position "'bottom'" 2>/dev/null || true
-    dconf write /net/launchpad/plank/docks/dock1/icon-size 80 2>/dev/null || true
+    dconf write /net/launchpad/plank/docks/dock1/icon-size "$dksz" 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/zoom-enabled true 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/zoom-percent 150 2>/dev/null || true
     dconf write /net/launchpad/plank/docks/dock1/dock-items \
@@ -312,7 +325,24 @@ c_scaling() {
 }
 
 c_picom() {
-  step "Compositor picom (blur, angoli, ombre$( [ "$DO_ANIM" = 1 ] && echo ", animazioni"))"
+  step "Compositor / effetto vetro"
+  # Rilevamento accelerazione GPU: con render software (llvmpipe) o dentro una VM,
+  # il backend glx di picom CONGELA il desktop (display bloccato). In quel caso si
+  # usa il compositing interno di xfwm4 (Xrender): dà la trasparenza del pannello
+  # (effetto vetro SENZA blur) ed è stabile ovunque. Con GPU vera -> picom pieno.
+  local gpu=1
+  if command -v systemd-detect-virt >/dev/null && systemd-detect-virt -q 2>/dev/null; then gpu=0; fi
+  if have glxinfo && glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast)'; then gpu=0; fi
+  if [ "$gpu" = 0 ]; then
+    warn "nessuna accelerazione GPU (VM/render software): niente picom (freeza), uso compositing xfwm4"
+    need_xfconf
+    xq -c xfwm4 -p /general/use_compositing -t bool -s true --create
+    xq -c xfwm4 -p /general/margin_top -t int -s 52 --create
+    rm -f "$HOME/.config/autostart/picom.desktop" 2>/dev/null
+    pkill -x picom 2>/dev/null; pkill -x picom-anim 2>/dev/null || true
+    ok "compositing xfwm4 attivo (vetro senza blur, stabile su VM/no-GPU)"
+    return 0
+  fi
   mkdir -p "$HOME/.config/picom" "$HOME/.config/autostart"
   cp "$ASSETS/picom/picom.conf" "$HOME/.config/picom/picom.conf"
   cp "$ASSETS/picom/picom-anim.conf" "$HOME/.config/picom/picom-anim.conf"

@@ -7,8 +7,8 @@
     <property name="panel-1" type="empty">
       <property name="position" type="string" value="p=1;x=0;y=0"/>
       <property name="position-locked" type="bool" value="true"/>
-      <property name="size" type="uint" value="50"/>
-      <property name="icon-size" type="uint" value="42"/>
+      <property name="size" type="uint" value="@PANEL_SIZE@"/>
+      <property name="icon-size" type="uint" value="@PANEL_ICON@"/>
       <property name="length" type="uint" value="100"/>
       <property name="mode" type="uint" value="0"/>
       <property name="autohide-behavior" type="uint" value="0"/>
