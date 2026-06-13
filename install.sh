@@ -497,6 +497,15 @@ c_greeter() {
   as_root install -Dm755 "$deploy" /usr/local/sbin/macos-theme-deploy
   rm -f "$deploy"
   as_root /usr/local/sbin/macos-theme-deploy || { warn "deploy greeter fallito"; return 0; }
+  # Ubuntu 24.04+: AppArmor blocca gli unprivileged user namespaces, e il sandbox
+  # di Chromium (nody-greeter è Electron) fallisce -> il greeter CRASHA all'avvio
+  # ("FATAL:credentials.cc Check failed: Permission denied"). Permettiamo gli
+  # userns non privilegiati via sysctl drop-in.
+  if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+    echo 'kernel.apparmor_restrict_unprivileged_userns=0' | \
+      as_root tee /etc/sysctl.d/60-nody-greeter-userns.conf >/dev/null
+    as_root sysctl --system >/dev/null 2>&1 || true
+  fi
   ok "greeter installato (test: nody-greeter --mode debug --theme macos)"
 }
 
