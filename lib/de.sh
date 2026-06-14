@@ -40,12 +40,26 @@ de_require() {
   exit 1
 }
 
+# helper interno Cinnamon: forza variante -solid e toglie hdpi
+_de_cinnamon_solid() {
+  local t="$1"
+  t="${t%%-hdpi}"
+  t="${t%%-xhdpi}"
+  case "$t" in
+    *-solid) echo "$t" ;;
+    *) echo "${t}-solid" ;;
+  esac
+}
+
 # --- tema GTK / icone / cursori ---------------------------------------------
 de_set_gtk_theme() {  # NAME
   case "$DE" in
     xfce)     xfconf-query -c xsettings -p /Net/ThemeName -t string -s "$1" --create;;
-    cinnamon) gset org.cinnamon.desktop.interface gtk-theme "$1"
-              gset org.cinnamon.theme name "$1";;   # tema della shell Cinnamon
+    cinnamon)
+      local s; s="$(_de_cinnamon_solid "$1")"
+      gset org.cinnamon.desktop.interface gtk-theme "$s"
+      gset org.cinnamon.theme name "$s"
+      ;;
   esac
 }
 de_set_icon_theme() {  # NAME
@@ -87,7 +101,10 @@ de_set_mnemonics_off() {
 de_set_wm_theme() {  # NAME (es. WhiteSur-Light o variante hdpi su XFCE)
   case "$DE" in
     xfce)     xfconf-query -c xfwm4 -p /general/theme -t string -s "$1" --create;;
-    cinnamon) gset org.cinnamon.desktop.wm.preferences theme "$1";;  # tema metacity/muffin
+    cinnamon)
+      local s; s="$(_de_cinnamon_solid "$1")"
+      gset org.cinnamon.desktop.wm.preferences theme "$s"
+      ;;
   esac
 }
 
