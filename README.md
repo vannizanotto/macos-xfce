@@ -15,7 +15,9 @@ Menu logo (lemon, instead of the apple):
 
 <img src="docs/lemon-logo.png" width="96" alt="Lemon logo">
 
-> Desktop and login screen screenshots will be added.
+### Desktop Preview
+
+<img src="docs/desktop-preview.png" width="800" alt="Desktop Preview">
 
 ## Installation
 

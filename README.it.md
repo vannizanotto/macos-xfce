@@ -15,7 +15,9 @@ Logo del menu (limone, al posto della mela):
 
 <img src="docs/lemon-logo.png" width="96" alt="Logo limone">
 
-> Gli screenshot di desktop e login screen verranno aggiunti (versioni "pulite", senza dati personali).
+### Anteprima Desktop
+
+<img src="docs/desktop-preview.png" width="800" alt="Anteprima Desktop">
 
 ## Installazione
 

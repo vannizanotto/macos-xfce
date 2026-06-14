@@ -15,7 +15,9 @@ Menü-Logo (Zitrone statt Apfel):
 
 <img src="docs/lemon-logo.png" width="96" alt="Zitronen-Logo">
 
-> Desktop- und Anmeldebildschirm-Screenshots werden noch hinzugefügt.
+### Desktop-Vorschau
+
+<img src="docs/desktop-preview.png" width="800" alt="Desktop-Vorschau">
 
 ## Installation
 
