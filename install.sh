@@ -15,6 +15,7 @@ ASSETS="$SCRIPT_DIR/assets"
 
 # --- default ----------------------------------------------------------------
 DPI=""                 # vuoto = non toccare la scala; es. 240 per HiDPI 2.5x
+WALLPAPER=""           # vuoto = gradiente del pacchetto; altrimenti path a un'immagine tua
 ASSUME_YES=0
 DO_PACKAGES=1; DO_THEME=1; DO_SFPRO=1; DO_PANEL=1; DO_DOCK=1
 DO_SCALING=1; DO_PICOM=1; DO_ANIM=1; DO_POWER=1; DO_CORNERS=1
@@ -27,6 +28,9 @@ Uso: ./install.sh [opzioni]
 
   --dpi N            imposta la scala (Xft.DPI). Es: 144 (1.5x), 192 (2x), 240 (2.5x).
                      Default: non cambia la scala.
+  --wallpaper PATH   usa la TUA immagine come sfondo (es. un wallpaper macOS).
+                     Default: gradiente libero incluso (non si possono redistribuire
+                     le immagini Apple).
   --yes              non interattivo (assume "sì").
   --greeter          installa anche il login screen (richiede nody-greeter, sudo).
   --plymouth         installa anche il boot splash ciliegia (sudo, rigenera initramfs).
@@ -47,6 +51,7 @@ ONLY=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dpi) DPI="$2"; shift 2;;
+    --wallpaper) WALLPAPER="$2"; shift 2;;
     --yes|-y) ASSUME_YES=1; shift;;
     --greeter) DO_GREETER=1; shift;;
     --plymouth) DO_PLYMOUTH=1; shift;;
@@ -480,12 +485,22 @@ c_notify() {
 }
 
 c_wallpaper() {
-  local wp="gradient-light.jpg"
-  [ -f "$ASSETS/wallpapers/$wp" ] || { dim "nessun wallpaper nel pacchetto"; return 0; }
-  step "Wallpaper (gradiente libero, colorato in alto per il blur)"
   mkdir -p "$HOME/.local/share/wallpapers"
-  cp "$ASSETS/wallpapers/$wp" "$HOME/.local/share/wallpapers/"
-  local img="$HOME/.local/share/wallpapers/$wp"
+  local img
+  if [ -n "${WALLPAPER:-}" ]; then
+    # wallpaper personalizzato passato con --wallpaper (es. una foto macOS che
+    # l'utente possiede ma che non possiamo redistribuire nel repo).
+    [ -f "$WALLPAPER" ] || { warn "wallpaper non trovato: $WALLPAPER (salto)"; return 0; }
+    step "Wallpaper (personalizzato: $(basename "$WALLPAPER"))"
+    cp "$WALLPAPER" "$HOME/.local/share/wallpapers/" || { warn "copia wallpaper fallita"; return 0; }
+    img="$HOME/.local/share/wallpapers/$(basename "$WALLPAPER")"
+  else
+    local wp="gradient-light.jpg"
+    [ -f "$ASSETS/wallpapers/$wp" ] || { dim "nessun wallpaper nel pacchetto"; return 0; }
+    step "Wallpaper (gradiente libero; usa --wallpaper PATH per la tua immagine)"
+    cp "$ASSETS/wallpapers/$wp" "$HOME/.local/share/wallpapers/"
+    img="$HOME/.local/share/wallpapers/$wp"
+  fi
   de_set_wallpaper "$img"
   [ -n "${DISPLAY:-}" ] && [ "$DE" = "xfce" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
   ok "wallpaper impostato"
