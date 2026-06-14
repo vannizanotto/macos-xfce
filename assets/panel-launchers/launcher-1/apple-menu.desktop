@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Menu Apple
+Comment=Menu di sistema stile macOS (Informazioni, Impostazioni, Spegni…)
+Exec=@HOME@/.local/bin/macos-apple-menu
+Icon=@HOME@/.local/share/icons/lemon-logo.svg
+Terminal=false
+StartupNotify=false

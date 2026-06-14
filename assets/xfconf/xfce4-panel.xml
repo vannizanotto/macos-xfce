@@ -34,18 +34,9 @@
     </property>
   </property>
   <property name="plugins" type="empty">
-    <property name="plugin-1" type="string" value="whiskermenu">
-      <property name="button-title" type="string" value=""/>
-      <property name="button-icon" type="string" value="@HOME@/.local/share/icons/lemon-logo.svg"/>
-      <property name="show-button-title" type="bool" value="false"/>
-      <property name="command-logout" type="string" value="@HOME@/.local/bin/macos-power-dialog"/>
-      <property name="show-command-logout" type="bool" value="true"/>
-      <property name="favorites" type="array">
-        <value type="string" value="firefox.desktop"/>
-        <value type="string" value="thunderbird.desktop"/>
-        <value type="string" value="org.xfce.thunar.desktop"/>
-        <value type="string" value="xfce4-terminal.desktop"/>
-        <value type="string" value="xfce4-taskmanager.desktop"/>
+    <property name="plugin-1" type="string" value="launcher">
+      <property name="items" type="array">
+        <value type="string" value="apple-menu.desktop"/>
       </property>
     </property>
     <property name="plugin-7" type="string" value="separator">

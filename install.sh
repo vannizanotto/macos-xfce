@@ -200,10 +200,11 @@ c_panel() {
   step "Pannello (menu bar) + scorciatoie"
   local X="$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
   mkdir -p "$X" "$HOME/.config/xfce4/panel"
-  # icona del bottone whiskermenu: la menu bar la referenzia, senza resta vuoto
-  mkdir -p "$HOME/.local/share/icons"
+  # icona del logo (limone) + menu Apple stile macOS aperto dal logo nel pannello
+  mkdir -p "$HOME/.local/share/icons" "$HOME/.local/bin"
   cp "$ASSETS/icons/lemon-logo.svg" "$HOME/.local/share/icons/" 2>/dev/null || true
-  # launcher (spotlight ecc.)
+  install -Dm755 "$ASSETS/bin/macos-apple-menu" "$HOME/.local/bin/macos-apple-menu" 2>/dev/null || true
+  # launcher (menu Apple, spotlight ecc.)
   cp -r "$ASSETS"/panel-launchers/launcher-* "$HOME/.config/xfce4/panel/" 2>/dev/null || true
   for f in "$HOME"/.config/xfce4/panel/launcher-*/*.desktop; do
     [ -e "$f" ] && sed -i "s#@HOME@#$HOME#g" "$f"
