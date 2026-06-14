@@ -15,9 +15,14 @@ de_detect() {
     *xfce*)     echo xfce;;
     *cinnamon*) echo cinnamon;;
     *)
-      # fallback: indovina dagli strumenti presenti
-      if have xfconf-query; then echo xfce
-      elif have cinnamon; then echo cinnamon
+      # fallback: PRIMA il processo del DE in esecuzione (affidabile anche via
+      # SSH/senza XDG_CURRENT_DESKTOP), poi la presenza dei binari. NB: non basta
+      # "c'e' xfconf-query -> xfce": su Cinnamon i pacchetti XFCE possono essere
+      # installati (es. xfce4-appmenu-plugin) e falsare il rilevamento.
+      if   pgrep -x cinnamon >/dev/null 2>&1; then echo cinnamon
+      elif pgrep -x xfwm4    >/dev/null 2>&1; then echo xfce
+      elif have cinnamon;     then echo cinnamon
+      elif have xfconf-query; then echo xfce
       else echo unknown; fi
       ;;
   esac
