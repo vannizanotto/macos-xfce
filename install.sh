@@ -10,6 +10,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ASSETS="$SCRIPT_DIR/assets"
 # shellcheck source=lib/common.sh
 . "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=lib/de.sh
+. "$SCRIPT_DIR/lib/de.sh"
 
 # --- default ----------------------------------------------------------------
 DPI=""                 # vuoto = non toccare la scala; es. 240 per HiDPI 2.5x
@@ -153,16 +155,14 @@ c_theme() {
   cp "$ASSETS/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css"
   cp "$ASSETS/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
 
-  need_xfconf
   local var; var="$(theme_variant)"
-  xq -c xsettings -p /Net/ThemeName     -t string -s WhiteSur-Light  --create
-  xq -c xsettings -p /Net/IconThemeName -t string -s WhiteSur-light  --create
-  xq -c xsettings -p /Gtk/CursorThemeName -t string -s WhiteSur-cursors --create
-  xq -c xsettings -p /Gtk/DecorationLayout -t string -s "close,minimize,maximize:" --create
-  xq -c xsettings -p /Gtk/AutoMnemonics -t bool -s true --create
-  xq -c xfwm4 -p /general/theme -t string -s "$var" --create
-  xq -c xfwm4 -p /general/button_layout -t string -s "CHM|" --create
-  ok "tema applicato (xfwm4: $var)"
+  de_set_gtk_theme "WhiteSur-Light"
+  de_set_icon_theme "WhiteSur-light"
+  de_set_cursor_theme "WhiteSur-cursors"
+  de_set_buttons_mac
+  de_set_mnemonics_off
+  de_set_wm_theme "$var"
+  ok "tema applicato (wm: $var)"
 }
 
 c_sfpro() {
@@ -186,18 +186,23 @@ c_sfpro() {
     rm -rf "$tmp"; fc-cache -f "$dest" >/dev/null 2>&1 || true
     ok "SF Pro installato in $dest"
   fi
-  need_xfconf
   if fc-list 2>/dev/null | grep -qi "SF Pro Text"; then
-    xq -c xsettings -p /Gtk/FontName -t string -s "SF Pro Text 10" --create
-    xq -c xfwm4 -p /general/title_font -t string -s "SF Pro Display Semibold 10" --create
+    de_set_interface_font "SF Pro Text 10"
+    de_set_title_font "SF Pro Display Semibold 10"
   else
-    xq -c xsettings -p /Gtk/FontName -t string -s "Inter 10" --create
-    xq -c xfwm4 -p /general/title_font -t string -s "Inter Bold 10" --create
+    de_set_interface_font "Inter 10"
+    de_set_title_font "Inter Bold 10"
   fi
 }
 
 c_panel() {
   step "Pannello (menu bar) + scorciatoie"
+  de_set_panel_top
+  if [ "$DE" = "cinnamon" ]; then
+    # Su Cinnamon la posizione l'abbiamo forzata in alto. Applet, Cinnamenu ecc. andrebbero aggiunti via gsettings.
+    ok "pannello configurato (top)"
+    return 0
+  fi
   local X="$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
   mkdir -p "$X" "$HOME/.config/xfce4/panel"
   # icona del logo (limone) + menu Apple stile macOS aperto dal logo nel pannello
@@ -273,7 +278,7 @@ c_dock() {
 Type=Application
 Name=Plank
 Exec=plank
-OnlyShowIn=XFCE;
+OnlyShowIn=XFCE;X-Cinnamon;
 X-XFCE-Autostart-enabled=true
 StartupNotify=false
 Terminal=false
@@ -320,12 +325,12 @@ EOF
 c_scaling() {
   [ -z "$DPI" ] && { dim "scala non modificata (nessun --dpi)"; return 0; }
   step "Scala display (HiDPI)"
-  need_xfconf
-  xq -c xsettings -p /Xft/DPI -t int -s "$DPI" --create
-  ok "Xft.DPI = $DPI  (riavvia Chrome/Electron per rileggerlo)"
+  de_set_scaling "$DPI"
+  ok "Scala = $DPI  (riavvia Chrome/Electron per rileggerlo)"
 }
 
 c_picom() {
+  de_needs_picom || { dim "picom non necessario per $DE (compositor integrato)"; return 0; }
   step "Compositor / effetto vetro"
   # Rilevamento accelerazione GPU: con render software (llvmpipe) o dentro una VM,
   # il backend glx di picom CONGELA il desktop (display bloccato). In quel caso si
@@ -399,6 +404,7 @@ build_picom_anim() {
 }
 
 c_power() {
+  [ "$DE" = "cinnamon" ] && { dim "power-dialog nativo in Cinnamon"; return 0; }
   step "Dialogo spegnimento stile macOS"
   install -Dm755 "$ASSETS/bin/macos-power-dialog" "$HOME/.local/bin/macos-power-dialog"
   dim "il wiring (menu + Ctrl+Alt+Fine) è nello XML del pannello/scorciatoie"
@@ -406,7 +412,9 @@ c_power() {
 }
 
 c_corners() {
-  step "Hot corners + Mission Control (xfdashboard)"
+  step "Hot corners + Mission Control"
+  de_set_hot_corners
+  [ "$DE" = "cinnamon" ] && { ok "hot corners configurati nativamente"; return 0; }
   install -Dm755 "$ASSETS/bin/macos-hot-corners" "$HOME/.local/bin/macos-hot-corners"
   cat > "$HOME/.config/autostart/macos-hot-corners.desktop" <<EOF
 [Desktop Entry]
@@ -438,9 +446,7 @@ c_touchegg() {
 
 c_notify() {
   step "Notifiche stile macOS"
-  need_xfconf
-  xq -c xfce4-notifyd -p /notify-location -t string -s top-right --create 2>/dev/null || true
-  xq -c xfce4-notifyd -p /theme -t string -s macOS --create 2>/dev/null || true
+  de_set_notify_topright
   ok "notifiche"
 }
 
@@ -451,24 +457,8 @@ c_wallpaper() {
   mkdir -p "$HOME/.local/share/wallpapers"
   cp "$ASSETS/wallpapers/$wp" "$HOME/.local/share/wallpapers/"
   local img="$HOME/.local/share/wallpapers/$wp"
-  need_xfconf
-  # NB: serve ANCHE image-style (5=scaled): con la sola last-image l'immagine
-  # non viene disegnata e il desktop resta nero.
-  local p found=0
-  for p in $(xq -c xfce4-desktop -l 2>/dev/null | grep 'last-image$' || true); do
-    xq -c xfce4-desktop -p "$p" -t string -s "$img" --create 2>/dev/null || true
-    xq -c xfce4-desktop -p "${p%last-image}image-style" -t int -s 5 --create 2>/dev/null || true
-    found=1
-  done
-  # sistema vergine: nessuna proprietà backdrop ancora -> creala per i monitor attivi
-  if [ "$found" = 0 ] && [ -n "${DISPLAY:-}" ] && have xrandr; then
-    local mon
-    for mon in $(xrandr 2>/dev/null | awk '/ connected/{print $1}'); do
-      xq -c xfce4-desktop -p "/backdrop/screen0/monitor$mon/workspace0/last-image"  -t string -s "$img" --create 2>/dev/null || true
-      xq -c xfce4-desktop -p "/backdrop/screen0/monitor$mon/workspace0/image-style" -t int    -s 5    --create 2>/dev/null || true
-    done
-  fi
-  [ -n "${DISPLAY:-}" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
+  de_set_wallpaper "$img"
+  [ -n "${DISPLAY:-}" ] && [ "$DE" = "xfce" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
   ok "wallpaper impostato"
 }
 
