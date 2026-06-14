@@ -56,7 +56,7 @@
     <property name="plugin-13" type="string" value="clock">
       <property name="digital-layout" type="uint" value="3"/>
       <property name="digital-time-format" type="string" value="%a %d %b  %H:%M"/>
-      <property name="digital-time-font" type="string" value="Inter 10"/>
+      <property name="digital-time-font" type="string" value="SF Pro Text 10"/>
     </property>
     <property name="plugin-15" type="string" value="appmenu"/>
     <property name="plugin-20" type="string" value="launcher">
