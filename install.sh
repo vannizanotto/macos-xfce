@@ -120,6 +120,10 @@ c_packages() {
 
 c_theme() {
   step "Tema WhiteSur, font, icone, cursori"
+  # L'installer WhiteSur usa setterm/tput per lo spinner: senza un TERM valido
+  # (es. lanciato non da terminale / via SSH) ABORTA e il tema GTK non viene
+  # installato ("WhiteSur GTK ko" -> tema fantasma). Garantiamo un TERM.
+  export TERM="${TERM:-xterm-256color}"
   if [ "$DO_WHITESUR" = 1 ]; then
     local tmp; tmp="$(mktemp -d)"
     if confirm "Clonare e installare WhiteSur (GTK/icone/cursori)?"; then
@@ -199,8 +203,23 @@ c_panel() {
   step "Pannello (menu bar) + scorciatoie"
   de_set_panel_top
   if [ "$DE" = "cinnamon" ]; then
-    # Su Cinnamon la posizione l'abbiamo forzata in alto. Applet, Cinnamenu ecc. andrebbero aggiunti via gsettings.
-    ok "pannello configurato (top)"
+    # Menu-bar macOS su Cinnamon: applet Cinnamenu (menu) + calendario al centro +
+    # systray/indicatori a destra, pannello singolo in alto h=28. Spedito come asset.
+    mkdir -p "$HOME/.local/share/cinnamon/applets" "$HOME/.config/cinnamon/spices"
+    cp -r "$ASSETS/cinnamon/applets/Cinnamenu@json" "$HOME/.local/share/cinnamon/applets/" 2>/dev/null || true
+    [ -d "$ASSETS/cinnamon/spices/Cinnamenu@json" ] && \
+      cp -r "$ASSETS/cinnamon/spices/Cinnamenu@json" "$HOME/.config/cinnamon/spices/" 2>/dev/null || true
+    if have dconf; then
+      # applicazione CHIRURGICA (dconf write per-chiave; NON 'dconf load' che
+      # azzererebbe le altre chiavi di /org/cinnamon).
+      dconf write /org/cinnamon/panels-enabled "['1:0:top']"
+      dconf write /org/cinnamon/panels-height "['1:28']"
+      dconf write /org/cinnamon/panel-zone-icon-sizes '"[{\"panelId\": 1, \"left\": 0, \"center\": 0, \"right\": 20}]"'
+      dconf write /org/cinnamon/enabled-applets "['panel1:left:0:Cinnamenu@json:999', 'panel1:center:0:calendar@cinnamon.org:13', 'panel1:right:0:systray@cinnamon.org:3', 'panel1:right:1:xapp-status@cinnamon.org:4', 'panel1:right:2:notifications@cinnamon.org:5', 'panel1:right:3:removable-drives@cinnamon.org:7', 'panel1:right:4:keyboard@cinnamon.org:8', 'panel1:right:5:network@cinnamon.org:10', 'panel1:right:6:sound@cinnamon.org:11', 'panel1:right:7:power@cinnamon.org:12', 'panel1:right:8:cornerbar@cinnamon.org:14']"
+      dconf write /org/cinnamon/next-applet-id 15
+    fi
+    warn "pannello Cinnamon: si applica al prossimo login (Cinnamon carica applet+tema all'avvio sessione); per applicare subito: cinnamon --replace"
+    ok "pannello Cinnamon macOS (Cinnamenu + layout + zone)"
     return 0
   fi
   local X="$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
