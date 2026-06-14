@@ -190,7 +190,11 @@ c_sfpro() {
     rm -rf "$tmp"; fc-cache -f "$dest" >/dev/null 2>&1 || true
     ok "SF Pro installato in $dest"
   fi
-  if fc-list 2>/dev/null | grep -qi "SF Pro Text"; then
+  # refresh COMPLETO della cache prima del check: con 'fc-cache -f "$dest"' o
+  # subito dopo l'installazione la famiglia puo' non essere ancora indicizzata
+  # e si ripiega erroneamente su Inter. Accettiamo anche l'esistenza dei .otf.
+  fc-cache -f >/dev/null 2>&1 || true
+  if ls "$dest"/SF-Pro-Text*.otf >/dev/null 2>&1 || fc-list 2>/dev/null | grep -qi "SF Pro Text"; then
     de_set_interface_font "SF Pro Text 10"
     de_set_title_font "SF Pro Display Semibold 10"
   else
@@ -207,8 +211,14 @@ c_panel() {
     # systray/indicatori a destra, pannello singolo in alto h=28. Spedito come asset.
     mkdir -p "$HOME/.local/share/cinnamon/applets" "$HOME/.config/cinnamon/spices"
     cp -r "$ASSETS/cinnamon/applets/Cinnamenu@json" "$HOME/.local/share/cinnamon/applets/" 2>/dev/null || true
-    [ -d "$ASSETS/cinnamon/spices/Cinnamenu@json" ] && \
+    if [ -d "$ASSETS/cinnamon/spices/Cinnamenu@json" ]; then
       cp -r "$ASSETS/cinnamon/spices/Cinnamenu@json" "$HOME/.config/cinnamon/spices/" 2>/dev/null || true
+      # la config Cinnamenu usa @HOME@ per l'icona limone (menu-label vuota,
+      # menu-icon-custom=true): sostituisci col path reale.
+      for j in "$HOME/.config/cinnamon/spices/Cinnamenu@json"/*.json; do
+        [ -e "$j" ] && sed -i "s#@HOME@#$HOME#g" "$j"
+      done
+    fi
     if have dconf; then
       # applicazione CHIRURGICA (dconf write per-chiave; NON 'dconf load' che
       # azzererebbe le altre chiavi di /org/cinnamon).
