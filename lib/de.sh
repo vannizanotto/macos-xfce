@@ -138,13 +138,23 @@ de_set_scaling() {  # DPI
 }
 
 # --- wallpaper --------------------------------------------------------------
-de_set_wallpaper() {  # /path/assoluto/file.jpg
+de_set_wallpaper() {  # PATH
   case "$DE" in
     xfce)
       local p
+      local found=0
       for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep last-image || true); do
         xfconf-query -c xfce4-desktop -p "$p" -s "$1" 2>/dev/null || true
+        xfconf-query -c xfce4-desktop -p "${p%last-image}image-style" -t int -s 5 --create 2>/dev/null || true
+        found=1
       done
+      if [ "$found" = 0 ] && [ -n "${DISPLAY:-}" ]; then
+        local mon; mon="$(xrandr | grep ' connected' | head -1 | cut -d' ' -f1)"
+        if [ -n "$mon" ]; then
+          xfconf-query -c xfce4-desktop -p "/backdrop/screen0/monitor${mon}/workspace0/last-image" -t string -s "$1" --create 2>/dev/null || true
+          xfconf-query -c xfce4-desktop -p "/backdrop/screen0/monitor${mon}/workspace0/image-style" -t int -s 5 --create 2>/dev/null || true
+        fi
+      fi
       ;;
     cinnamon)
       gset org.cinnamon.desktop.background picture-uri "file://$1"
