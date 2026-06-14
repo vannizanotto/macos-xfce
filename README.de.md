@@ -19,14 +19,30 @@ Menü-Logo (Zitrone statt Apfel):
 
 ## Installation
 
+**✨ Schnelle automatische Installation (Empfohlen)**
+
+Führen Sie diesen einzigen Befehl in Ihrem Terminal aus, um alles automatisch herunterzuladen und zu installieren:
+
 ```bash
-git clone https://github.com/vannizanotto/macos-xfce.git && cd macos-xfce
+bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh)
+```
+
+**Manuelle Installation**
+
+Wenn Sie das Repository lieber manuell klonen möchten:
+
+```bash
+git clone https://github.com/vannizanotto/macos-xfce.git ~/.macos-xfce
+cd ~/.macos-xfce
 ./install.sh                 # Basis (ohne Anmeldebildschirm oder Boot-Splash)
 ```
 
-Beispiele:
+### Beispiele:
 
 ```bash
+# Sie können auch Optionen an das Schnell-Setup-Skript anhängen:
+# bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh) --dpi 192
+
 ./install.sh --dpi 192           # mit 2x HiDPI-Skalierung (Retina-ähnliche Bildschirme)
 ./install.sh --greeter --plymouth   # installiert auch Anmeldebildschirm und Boot-Splash
 ./install.sh --no-sf-pro            # Inter statt SF Pro verwenden
