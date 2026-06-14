@@ -1,63 +1,81 @@
-# macOS-XFCE
+# macOS-XFCE (Dual-DE: XFCE & Cinnamon)
 
-Trasforma un desktop **Linux Mint / Ubuntu con XFCE** in stile **macOS Sonoma**:
-tema WhiteSur, font SF Pro, menu bar con global menu + Spotlight, dock Plank,
-compositor con blur/angoli/ombre/animazioni (picom), dialogo di spegnimento, hot
-corners, Mission Control, gesture touchpad, notifiche, **login screen** (greeter
-webkit) e **boot splash** (Plymouth).
+Transforms a **Linux Mint / Ubuntu desktop with XFCE or Cinnamon** into a **macOS Sonoma** style:
+WhiteSur theme, SF Pro font, menu bar with global menu + Spotlight (XFCE), Plank dock,
+compositor with blur/corners/shadows/animations (picom on XFCE), power dialog, hot
+corners, Mission Control, touchpad gestures, notifications, **login screen** (webkit greeter)
+and **boot splash** (Plymouth).
 
-> Testato su Linux Mint 22.3 (Ubuntu 24.04 noble) + XFCE 4.18 + LightDM.
-> Su altri desktop/display-manager alcune parti vanno adattate.
+> Tested on Linux Mint 22 (Ubuntu 24.04 noble) + XFCE 4.18 / Cinnamon + LightDM.
+> On other desktops/display managers some parts may need adaptation.
 
-## Anteprima
+## Preview
 
-Logo del menu (limone, al posto della mela):
+Menu logo (lemon, instead of the apple):
 
-<img src="docs/lemon-logo.png" width="96" alt="Logo limone">
+<img src="docs/lemon-logo.png" width="96" alt="Lemon logo">
 
-> Gli screenshot di desktop e login screen verranno aggiunti (versioni "pulite", senza dati personali).
+### Desktop Preview
 
-## Installazione
+<img src="docs/desktop-preview.png" width="800" alt="Desktop Preview">
+
+## Installation
+
+**✨ Quick Automatic Install (Recommended)**
+
+Run this single command in your terminal to automatically download and install everything:
 
 ```bash
-git clone <questo-repo> macos-xfce && cd macos-xfce
-./install.sh                 # base (senza login screen né boot splash)
+bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh)
 ```
 
-Esempi:
+**Manual Installation**
+
+If you prefer to clone the repository manually:
 
 ```bash
-./install.sh --dpi 192           # con scala HiDPI 2x (schermi Retina-like)
-./install.sh --greeter --plymouth   # installa anche login screen e boot splash
-./install.sh --no-sf-pro            # usa Inter invece di SF Pro
-./install.sh --only picom,power     # reinstalla solo alcuni componenti
-./install.sh --yes                  # non interattivo
+git clone https://github.com/vannizanotto/macos-xfce.git ~/.macos-xfce
+cd ~/.macos-xfce
+./install.sh                 # base (no login screen or boot splash)
 ```
 
-**Importante**: lancia lo script **come utente normale**, NON con `sudo` (chiederà
-lui la password dove serve: pacchetti, greeter, plymouth). Dopo l'installazione fai
-**logout/login**: pannello, scorciatoie e autostart si applicano alla nuova sessione.
+### Examples:
 
-### Opzioni principali
+```bash
+# You can append options to the quick setup script too:
+# bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh) --dpi 192
 
-| Opzione | Effetto |
+./install.sh --dpi 192           # with 2x HiDPI scaling (Retina-like screens)
+./install.sh --greeter --plymouth   # also install login screen and boot splash
+./install.sh --no-sf-pro            # use Inter instead of SF Pro
+./install.sh --only picom,power     # reinstall only specific components
+./install.sh --yes                  # non-interactive
+```
+
+**Important**: run the script **as a normal user**, NOT with `sudo` (it will ask for
+the password where needed: packages, greeter, plymouth). After the installation,
+**logout/login**: panel, shortcuts, and autostart apply to the new session.
+
+### Main Options
+
+| Option | Effect |
 |---|---|
-| `--dpi N` | imposta la scala (`Xft.DPI`). Es. 144≈1.5×, 192≈2×, 240≈2.5×. Default: invariata. |
-| `--greeter` | installa il login screen nody-greeter (serve il `.deb`, vedi sotto). |
-| `--plymouth` | installa il boot splash limone (rigenera l'initramfs). |
-| `--no-sf-pro` | non scaricare SF Pro, usa Inter. |
-| `--no-animations` | picom senza animazioni (niente compilazione da sorgente). |
-| `--no-whitesur` | non installare WhiteSur (lo dai per presente). |
-| `--no-packages` | salta `apt install`. |
-| `--only LISTA` | esegui solo i componenti elencati. |
-| `--yes` | non interattivo. |
+| `--dpi N` | Sets the scaling (`Xft.DPI` for XFCE, text-scaling for Cinnamon). E.g. 144≈1.5×, 192≈2×, 240≈2.5×. Default: unchanged. |
+| `--greeter` | Installs the nody-greeter login screen (requires the `.deb`, see below). |
+| `--plymouth` | Installs the lemon boot splash (regenerates the initramfs). |
+| `--no-sf-pro` | Do not download SF Pro, use Inter instead. |
+| `--no-animations` | picom without animations (no compilation from source). |
+| `--no-whitesur` | Do not install WhiteSur (assumes it is already present). |
+| `--no-packages` | Skip `apt install`. |
+| `--only LIST` | Execute only the listed components. |
+| `--yes` | Non-interactive mode. |
 
-Componenti per `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,greeter,plymouth`.
+Components for `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,greeter,plymouth`.
 
 ## Login screen (nody-greeter)
 
-Non è su apt: scarica il `.deb` per la tua Ubuntu dalle release del progetto e installalo,
-poi lancia il componente greeter:
+It is not in apt: download the `.deb` for your Ubuntu from the project's releases and install it,
+then run the greeter component:
 
 ```bash
 # https://github.com/JezerM/nody-greeter/releases
@@ -65,71 +83,50 @@ sudo apt install ./nody-greeter-*.deb
 ./install.sh --only greeter
 ```
 
-Test senza logout: `nody-greeter --mode debug --theme macos` (in debug appare un popup
-"Unable to determine socket to daemon": è normale).
+Test without logging out: `nody-greeter --mode debug --theme macos` (in debug mode a popup
+"Unable to determine socket to daemon" will appear: this is normal).
 
-## Cosa NON è incluso (e perché)
+## What is NOT included (and why)
 
-- **SF Pro** — è di Apple, non ridistribuibile. L'installer lo **scarica** dalla CDN Apple
-  sul tuo PC (`--no-sf-pro` per usare Inter).
-- **WhiteSur** (tema/icone/cursori) — clonati al volo da
-  [vinceliuice](https://github.com/vinceliuice), poi patchati (angoli + batteria monocroma).
-- **I set icone giganti** `WhiteSur` / `WhiteSur-dark` — l'installer di vinceliuice li gestisce.
+- **SF Pro** — it's owned by Apple, not redistributable. The installer **downloads** it from the Apple CDN
+  to your PC (`--no-sf-pro` to use Inter).
+- **WhiteSur** (theme/icons/cursors) — cloned on the fly from
+  [vinceliuice](https://github.com/vinceliuice), then patched (corners + monochrome battery).
+- **Giant icon sets** `WhiteSur` / `WhiteSur-dark` — handled by vinceliuice's installer.
 
-## Note / adattamenti
+## Notes / adaptations
 
-- **HiDPI**: i pallini titlebar e i px del greeter non scalano col DPI → l'installer sceglie la
-  variante xfwm4 (`-hdpi`/`-xhdpi`) in base a `--dpi`, ma il greeter è tarato per schermi ~2×.
-- **Altezza pannello**: il margine anti-sovrapposizione (`xfwm4/margin_top`) è 52px. Se cambi
-  l'altezza del pannello, aggiornalo.
-- Il **blur** della menu bar si vede solo con un wallpaper colorato in alto (incluso un gradiente libero
-  `gradient-light.jpg`; rigeneralo con `assets/wallpapers/gen_wallpaper.py`).
-- Le animazioni richiedono `picom-anim` (fork FT-Labs) compilato da sorgente: l'installer chiede
-  conferma; `--no-animations` per saltarlo.
+- **HiDPI**: titlebar buttons and greeter px do not scale with DPI → the installer chooses the
+  xfwm4 variant (`-hdpi`/`-xhdpi`) based on `--dpi`, but the greeter is optimized for ~2× screens.
+- **Panel height**: the anti-overlap margin (`xfwm4/margin_top`) is 52px. If you change
+  the panel height, update it.
+- The **blur** of the menu bar is only visible with a colorful top wallpaper (a free gradient
+  `gradient-light.jpg` is included; regenerate it with `assets/wallpapers/gen_wallpaper.py`).
+- Animations require `picom-anim` (FT-Labs fork) compiled from source: the installer asks
+  for confirmation; use `--no-animations` to skip.
+- **Cinnamon support**: The installer uses an abstraction layer (`lib/de.sh`) to support both XFCE and Cinnamon natively.
 
-## Disinstallazione
+## Uninstallation
 
 ```bash
 ./uninstall.sh
 ```
 
-Ripristina i default ragionevoli, rimuove autostart/script e i backup `*.macos-bak` di
-pannello/scorciatoie. Temi, icone e font vanno rimossi a mano (istruzioni a fine script).
+Restores reasonable defaults, removes autostart/scripts and the `*.macos-bak` backups of
+the panel/shortcuts. Themes, icons, and fonts must be removed manually.
 
-## Struttura
+## Trademarks and License
 
-```
-install.sh        orchestratore (una funzione per componente, idempotente)
-uninstall.sh      ripristino
-lib/common.sh     helper (log, sudo, backup, conferme)
-assets/
-  greeter/        tema del login (SF Pro scaricati a parte) + deploy script
-  plymouth/       tema boot splash + generatore asset
-  bin/            macos-power-dialog, macos-hot-corners
-  picom/          picom.conf, picom-anim.conf
-  gtk-3.0/        gtk.css (pannello scuro), settings.ini (mnemonics off)
-  touchegg/       gesture
-  themes/macOS/   temi notifiche + xfdashboard
-  xfconf/         XML pannello + scorciatoie (layout della menu bar)
-  panel-launchers/ launcher del pannello (Spotlight…)
-  patches/        flatten-corners.py, battery-fix.sh
-  icons/          lemon-logo.svg (logo del menu, Noto Emoji Apache-2.0)
-  wallpapers/     gradient-light/dark.jpg + gen_wallpaper.py (sfondi liberi)
-```
+> **Not affiliated with or endorsed by Apple Inc.** This is a *macOS-style* customization
+> project for Linux. "macOS", "SF Pro" and Apple trademarks belong to Apple Inc.
 
-## Marchi e licenza
+To minimize copyright/trademark issues, the repo **does not redistribute Apple assets**:
 
-> **Non affiliato né approvato da Apple Inc.** Questo è un progetto di personalizzazione
-> *macOS-style* per Linux. "macOS", "SF Pro" e i marchi Apple appartengono ad Apple Inc.
+- **Logo**: no bitten apple → **lemon** icon colored by
+  [Noto Emoji](https://github.com/googlefonts/noto-emoji) (Apache-2.0), used in the menu and boot splash.
+- **SF Pro Font**: not included; the installer **downloads** it from the Apple CDN to your PC, or
+  uses Inter (`--no-sf-pro`).
+- **Wallpaper**: no macOS wallpapers, but **generated gradients** (free).
 
-Per ridurre al minimo i problemi di copyright/marchio, il repo **non ridistribuisce asset Apple**:
-
-- **Logo**: niente mela morsicata → icona **limone** colorata da
-  [Noto Emoji](https://github.com/googlefonts/noto-emoji) (Apache-2.0), usata nel menu e nel boot splash.
-  Vedi `docs/lemon-logo.png`.
-- **Font SF Pro**: non incluso; l'installer lo **scarica** dalla CDN Apple sul tuo PC, oppure
-  usa Inter (`--no-sf-pro`).
-- **Wallpaper**: non sfondi macOS, ma **gradienti generati** (liberi).
-
-Codice e config: **MIT**. Crediti: **Noto Emoji** © Google (**Apache-2.0**),
-**WhiteSur** © vinceliuice (**GPL-3.0**, clonato a runtime).
+Code and config: **MIT**. Credits: **Noto Emoji** © Google (**Apache-2.0**),
+**WhiteSur** © vinceliuice (**GPL-3.0**, cloned at runtime).
