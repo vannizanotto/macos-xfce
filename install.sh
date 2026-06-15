@@ -183,6 +183,17 @@ c_theme() {
       bash "$ASSETS/patches/battery-fix.sh" "$HOME/.local/share/icons/WhiteSur-light" || true
   fi
 
+  # Cache icone: i varianti WhiteSur (light/dark) usano symlink verso il tema
+  # base e il battery-fix riscrive degli SVG -> senza un refresh della cache GTK
+  # può mostrare icone mancanti (quadratini vuoti) finché non si rifà il login.
+  if have gtk-update-icon-cache; then
+    local it
+    for it in WhiteSur WhiteSur-light WhiteSur-dark; do
+      [ -d "$HOME/.local/share/icons/$it" ] && \
+        gtk-update-icon-cache -f -t "$HOME/.local/share/icons/$it" >/dev/null 2>&1 || true
+    done
+  fi
+
   # icona limone per il menu (Noto Emoji, sostituisce il logo Apple)
   install -Dm644 "$ASSETS/icons/lemon-logo.svg" "$HOME/.local/share/icons/lemon-logo.svg"
   # temi custom (notifiche + xfdashboard)
