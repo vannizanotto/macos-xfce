@@ -21,11 +21,19 @@ DO_PACKAGES=1; DO_THEME=1; DO_SFPRO=1; DO_PANEL=1; DO_DOCK=1
 DO_SCALING=1; DO_PICOM=1; DO_ANIM=1; DO_POWER=1; DO_CORNERS=1
 DO_TOUCHEGG=1; DO_NOTIFY=1; DO_WALLPAPER=1; DO_GREETER=0; DO_PLYMOUTH=0
 DO_WHITESUR=1
+# Ambiente macOS UNIVERSALE = XFCE+picom: è l'unico compositor che fa glass/blur,
+# bordi arrotondati e ombre come su macOS (Muffin di Cinnamon NON sa fare blur).
+# Quindi anche su una base Cinnamon il look macOS gira in una sessione XFCE.
+# --de cinnamon = path nativo Cinnamon (tema/dock/pannello ma SENZA glass).
+# --de auto     = usa il DE attualmente in esecuzione (rilevato).
+DE_TARGET="xfce"
 
 usage() {
   cat <<EOF
 Uso: ./install.sh [opzioni]
 
+  --de TARGET        ambiente macOS: xfce (default, glass pieno via picom),
+                     cinnamon (nativo, senza glass), auto (usa il DE in uso).
   --dpi N            imposta la scala (Xft.DPI). Es: 144 (1.5x), 192 (2x), 240 (2.5x).
                      Default: non cambia la scala.
   --wallpaper PATH   usa la TUA immagine come sfondo (es. un wallpaper macOS).
@@ -50,6 +58,7 @@ EOF
 ONLY=""
 while [ $# -gt 0 ]; do
   case "$1" in
+    --de) DE_TARGET="$2"; shift 2;;
     --dpi) DPI="$2"; shift 2;;
     --wallpaper) WALLPAPER="$2"; shift 2;;
     --yes|-y) ASSUME_YES=1; shift;;
@@ -68,6 +77,16 @@ if [ -n "$DPI" ] && ! [[ "$DPI" =~ ^[0-9]+$ ]]; then
   err "--dpi vuole un intero (es. 144, 192, 240), non: $DPI"; exit 2
 fi
 export ASSUME_YES
+
+# Applica il target DE scelto (default xfce). lib/de.sh ha già rilevato il DE in
+# esecuzione in $DE; qui lo sovrascriviamo col target voluto, così l'installer
+# tematizza l'ambiente macOS (XFCE) anche se lanciato da una sessione Cinnamon.
+case "$DE_TARGET" in
+  xfce|cinnamon) DE="$DE_TARGET";;
+  auto)          ;;  # tieni il DE rilevato da de_detect
+  *) err "--de: valori validi: xfce, cinnamon, auto (non: $DE_TARGET)"; exit 2;;
+esac
+export DE
 
 if [ -n "$ONLY" ]; then
   DO_PACKAGES=0; DO_THEME=0; DO_SFPRO=0; DO_PANEL=0; DO_DOCK=0; DO_SCALING=0
@@ -109,6 +128,13 @@ c_packages() {
     picom xfdashboard touchegg xdotool wmctrl x11-utils \
     fonts-inter fonts-jetbrains-mono python3-gi gir1.2-gtk-3.0 \
     python3-cairo python3-pil git p7zip-full curl"
+  # Ambiente macOS = XFCE: su una base Cinnamon il desktop XFCE può mancare.
+  # Installiamo il core XFCE + xfconf (serve a xfconf-query per tematizzare) così
+  # l'utente potrà scegliere la sessione "Xfce" al login e avere il look macOS.
+  if [ "$DE" = xfce ]; then
+    pkgs="$pkgs xfce4-session xfwm4 xfce4-panel xfce4-settings xfconf \
+      thunar xfdesktop4 xfce4-terminal libxfce4ui-utils xinit"
+  fi
   as_root apt-get update -y || warn "apt update fallito (continuo)"
   # Pre-filtro: tengo solo i pacchetti realmente disponibili. Senza questo, un
   # singolo nome inesistente fa abortire l'intera transazione apt e NON installa
@@ -563,7 +589,7 @@ c_plymouth() {
 ###############################################################################
 # MAIN
 ###############################################################################
-echo "${C_BLUE}macOS-XFCE installer${C_OFF}  (utente: $USER, home: $HOME)"
+echo "${C_BLUE}macOS-XFCE installer${C_OFF}  (utente: $USER, home: $HOME, ambiente: ${C_GREEN}$DE${C_OFF})"
 [ "$(id -u)" = "0" ] && { err "non lanciare come root: usa il tuo utente (chiederà sudo dove serve)"; exit 1; }
 
 [ "$DO_PACKAGES" = 1 ] && c_packages
@@ -583,6 +609,11 @@ echo "${C_BLUE}macOS-XFCE installer${C_OFF}  (utente: $USER, home: $HOME)"
 
 echo
 step "Fatto."
+if [ "$DE" = xfce ] && pgrep -x xfwm4 >/dev/null 2>&1; then :; fi
+if [ "$DE" = xfce ] && ! pgrep -x xfwm4 >/dev/null 2>&1; then
+  echo "  • ${C_GREEN}IMPORTANTE${C_OFF}: il look macOS (glass/blur/angoli/ombre) gira nella sessione ${C_GREEN}Xfce${C_OFF}."
+  echo "    Fai logout e, nella schermata di login, scegli la sessione ${C_GREEN}«Xfce»${C_OFF} (icona ingranaggio)."
+fi
 echo "  • Esegui un ${C_GREEN}logout/login${C_OFF} per applicare pannello, scorciatoie e autostart."
 echo "  • Per il login screen:  ./install.sh --only greeter   (dopo aver installato nody-greeter)"
 echo "  • Per il boot splash:   ./install.sh --plymouth"
