@@ -437,7 +437,9 @@ EOF
   # restart (non solo "avvia se assente"): un plank già attivo NON rilegge il
   # tema dopo il dconf write -> resterebbe col tema scuro di default.
   if have plank && [ -n "${DISPLAY:-}" ]; then
-    pkill -x plank 2>/dev/null; sleep 1
+    # NB: || true obbligatorio — su un'installazione fresca plank NON è in
+    # esecuzione, pkill ritorna 1 e con 'set -e' aborterebbe l'installer.
+    pkill -x plank 2>/dev/null || true; sleep 1
     setsid plank >/dev/null 2>&1 &
   fi
   ok "plank"
@@ -468,7 +470,7 @@ c_picom() {
     xq -c xfwm4 -p /general/use_compositing -t bool -s true --create
     xq -c xfwm4 -p /general/margin_top -t int -s 52 --create
     rm -f "$HOME/.config/autostart/picom.desktop" 2>/dev/null
-    pkill -x picom 2>/dev/null; pkill -x picom-anim 2>/dev/null || true
+    pkill -x picom 2>/dev/null || true; pkill -x picom-anim 2>/dev/null || true
     ok "compositing xfwm4 attivo (vetro senza blur, stabile su VM/no-GPU)"
     return 0
   fi
