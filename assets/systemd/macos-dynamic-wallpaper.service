@@ -1,0 +1,6 @@
+[Unit]
+Description=macOS dynamic wallpaper (chiaro/scuro per ora del giorno)
+
+[Service]
+Type=oneshot
+ExecStart=@HOME@/.local/bin/macos-dynamic-wallpaper.sh

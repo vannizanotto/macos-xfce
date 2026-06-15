@@ -21,6 +21,7 @@ DO_PACKAGES=1; DO_THEME=1; DO_SFPRO=1; DO_PANEL=1; DO_DOCK=1
 DO_SCALING=1; DO_PICOM=1; DO_ANIM=1; DO_POWER=1; DO_CORNERS=1
 DO_TOUCHEGG=1; DO_NOTIFY=1; DO_WALLPAPER=1; DO_GREETER=0; DO_PLYMOUTH=0
 DO_WHITESUR=1
+DO_INPUT=1; DO_FINDER=1; DO_EMOJI=1; DO_DYNWALL=1
 # Ambiente macOS UNIVERSALE = XFCE+picom: è l'unico compositor che fa glass/blur,
 # bordi arrotondati e ombre come su macOS (Muffin di Cinnamon NON sa fare blur).
 # Quindi anche su una base Cinnamon il look macOS gira in una sessione XFCE.
@@ -50,7 +51,7 @@ Uso: ./install.sh [opzioni]
   -h, --help         questo aiuto.
 
 Componenti (per --only): packages,theme,sfpro,panel,dock,scaling,picom,power,
-  corners,touchegg,notify,wallpaper,greeter,plymouth
+  corners,touchegg,notify,wallpaper,input,finder,emoji,dynwall,greeter,plymouth
 EOF
 }
 
@@ -92,6 +93,7 @@ if [ -n "$ONLY" ]; then
   DO_PACKAGES=0; DO_THEME=0; DO_SFPRO=0; DO_PANEL=0; DO_DOCK=0; DO_SCALING=0
   DO_PICOM=0; DO_POWER=0; DO_CORNERS=0; DO_TOUCHEGG=0; DO_NOTIFY=0
   DO_WALLPAPER=0; DO_GREETER=0; DO_PLYMOUTH=0
+  DO_INPUT=0; DO_FINDER=0; DO_EMOJI=0; DO_DYNWALL=0
   IFS=',' read -ra _o <<< "$ONLY"
   for c in "${_o[@]}"; do
     case "$c" in
@@ -99,6 +101,7 @@ if [ -n "$ONLY" ]; then
       panel) DO_PANEL=1;; dock) DO_DOCK=1;; scaling) DO_SCALING=1;;
       picom) DO_PICOM=1;; power) DO_POWER=1;; corners) DO_CORNERS=1;;
       touchegg) DO_TOUCHEGG=1;; notify) DO_NOTIFY=1;; wallpaper) DO_WALLPAPER=1;;
+      input) DO_INPUT=1;; finder) DO_FINDER=1;; emoji) DO_EMOJI=1;; dynwall) DO_DYNWALL=1;;
       greeter) DO_GREETER=1;; plymouth) DO_PLYMOUTH=1;;
       *) err "componente sconosciuto: $c"; exit 2;;
     esac
@@ -125,7 +128,8 @@ c_packages() {
   step "Pacchetti di sistema (apt)"
   local pkgs="plank dconf-cli xfce4-appmenu-plugin appmenu-gtk2-module appmenu-gtk3-module vala-panel-appmenu \
     appmenu-registrar appmenu-gtk-module-common \
-    picom xfdashboard touchegg xdotool wmctrl x11-utils \
+    picom xfdashboard touchegg xdotool wmctrl x11-utils xinput \
+    xfce4-genmon-plugin gsimplecal gnome-sushi rofi \
     fonts-inter fonts-jetbrains-mono python3-gi gir1.2-gtk-3.0 \
     python3-cairo python3-pil git p7zip-full curl"
   # Ambiente macOS = XFCE: su una base Cinnamon il desktop XFCE può mancare.
@@ -189,6 +193,16 @@ c_theme() {
   backup_once "$HOME/.config/gtk-3.0/settings.ini"
   cp "$ASSETS/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css"
   cp "$ASSETS/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
+  # accent blu Apple per app GTK4 / libadwaita
+  mkdir -p "$HOME/.config/gtk-4.0"
+  backup_once "$HOME/.config/gtk-4.0/gtk.css"
+  cp "$ASSETS/gtk-4.0/gtk.css" "$HOME/.config/gtk-4.0/gtk.css"
+  # resa font stile Retina (antialiasing grayscale, no subpixel): fontconfig
+  # (universale) + Xft/RGBA su XFCE.
+  mkdir -p "$HOME/.config/fontconfig"
+  backup_once "$HOME/.config/fontconfig/fonts.conf"
+  cp "$ASSETS/fontconfig/fonts.conf" "$HOME/.config/fontconfig/fonts.conf"
+  de_set_font_rendering
 
   local var; var="$(theme_variant)"
   de_set_gtk_theme "WhiteSur-Light"
@@ -269,6 +283,13 @@ c_panel() {
   mkdir -p "$HOME/.local/share/icons" "$HOME/.local/bin"
   cp "$ASSETS/icons/lemon-logo.svg" "$HOME/.local/share/icons/" 2>/dev/null || true
   install -Dm755 "$ASSETS/bin/macos-apple-menu" "$HOME/.local/bin/macos-apple-menu" 2>/dev/null || true
+  # CSS del menu Apple (frosted light); il fallback è dentro lo script.
+  install -Dm644 "$ASSETS/apple-menu.css" "$HOME/.config/macos-xfce/apple-menu.css" 2>/dev/null || true
+  # Orologio = genmon: data+ora stile macOS + calendario gsimplecal al click.
+  # genmon NON usa xfconf: la sua config va in genmon-13.rc (allineato a plugin-13
+  # nel panel XML). Lo scriviamo PRIMA del restart del pannello qui sotto.
+  install -Dm755 "$ASSETS/bin/macos-clock-genmon.sh" "$HOME/.local/bin/macos-clock-genmon.sh" 2>/dev/null || true
+  sed "s#@HOME@#$HOME#g" "$ASSETS/xfconf/genmon-13.rc" > "$HOME/.config/xfce4/panel/genmon-13.rc"
   # launcher (menu Apple, spotlight ecc.)
   cp -r "$ASSETS"/panel-launchers/launcher-* "$HOME/.config/xfce4/panel/" 2>/dev/null || true
   for f in "$HOME"/.config/xfce4/panel/launcher-*/*.desktop; do
@@ -586,6 +607,120 @@ c_plymouth() {
   ok "boot splash installato (visibile al riavvio)"
 }
 
+c_input() {
+  step "Scroll naturale (touchpad + mouse)"
+  if [ "$DE" = cinnamon ]; then
+    gset org.cinnamon.desktop.peripherals.touchpad natural-scroll true
+    gset org.cinnamon.desktop.peripherals.mouse natural-scroll true
+    ok "scroll naturale (Cinnamon)"
+    return 0
+  fi
+  install -Dm755 "$ASSETS/bin/macos-natural-scroll.sh" "$HOME/.local/bin/macos-natural-scroll.sh"
+  mkdir -p "$HOME/.config/autostart"
+  cat > "$HOME/.config/autostart/macos-natural-scroll.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=macOS Natural Scroll
+Comment=Abilita scroll naturale su touchpad e mouse
+Exec=$HOME/.local/bin/macos-natural-scroll.sh
+OnlyShowIn=XFCE;
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
+EOF
+  # applica subito (idempotente; va riapplicato ad ogni login/hot-plug -> autostart)
+  [ -n "${DISPLAY:-}" ] && have xinput && "$HOME/.local/bin/macos-natural-scroll.sh" 2>/dev/null || true
+  ok "scroll naturale (attivo ad ogni login)"
+}
+
+# Inietta l'azione Quick Look (Spazio -> gnome-sushi) in Thunar, preservando le
+# azioni esistenti dell'utente. Idempotente.
+inject_quicklook_action() {
+  local d="$HOME/.config/Thunar"; mkdir -p "$d"
+  local uca="$d/uca.xml"
+  if [ ! -f "$uca" ]; then
+    { echo '<?xml version="1.0" encoding="UTF-8"?>'; echo '<actions>'
+      cat "$ASSETS/thunar/uca-quicklook.xml"; echo '</actions>'; } > "$uca"
+  elif ! grep -q 'sushi %F' "$uca"; then
+    backup_once "$uca"
+    if have python3; then
+      python3 - "$uca" "$ASSETS/thunar/uca-quicklook.xml" <<'PY' || warn "iniezione Quick Look ko"
+import sys
+uca, snip = sys.argv[1], sys.argv[2]
+s = open(uca).read()
+a = open(snip).read().rstrip() + "\n"
+if "</actions>" in s:
+    s = s.replace("</actions>", a + "</actions>", 1)
+    open(uca, "w").write(s)
+PY
+    else
+      warn "python3 mancante: azione Quick Look non iniettata"
+    fi
+  fi
+  # accel: tasto Spazio -> Quick Look (id allineato a uca-quicklook.xml)
+  local sc="$d/accels.scm"
+  local line='(gtk_accel_path "<Actions>/ThunarActions/uca-action-macosxfce-quicklook-1" "space")'
+  if [ -f "$sc" ]; then
+    grep -q 'uca-action-macosxfce-quicklook-1' "$sc" || { backup_once "$sc"; printf '%s\n' "$line" >> "$sc"; }
+  else
+    printf '; thunar GtkAccelMap rc-file\n%s\n' "$line" > "$sc"
+  fi
+}
+
+c_finder() {
+  have thunar || { dim "Thunar non installato, salto Finder/Quick Look"; return 0; }
+  [ "$DE" = xfce ] || { dim "Thunar/Quick Look: configurazione solo su XFCE"; return 0; }
+  step "Thunar stile Finder + Quick Look"
+  if have xfconf-query; then
+    xq -c thunar -p /last-view -t string -s ThunarIconView --create
+    xq -c thunar -p /last-icon-view-zoom-level -t string -s THUNAR_ZOOM_LEVEL_150_PERCENT --create
+    xq -c thunar -p /last-location-bar -t string -s ThunarLocationButtons --create
+    xq -c thunar -p /last-side-pane -t string -s ThunarShortcutsPane --create
+    xq -c thunar -p /misc-single-click -t bool -s false --create
+    xq -c thunar -p /misc-thumbnail-mode -t string -s THUNAR_THUMBNAIL_MODE_ALWAYS --create
+  fi
+  if have sushi; then
+    inject_quicklook_action
+  else
+    dim "gnome-sushi non installato: niente Quick Look (azione Thunar saltata)"
+  fi
+  ok "Thunar configurato (icon view, Luoghi, breadcrumb, anteprime)"
+}
+
+c_emoji() {
+  [ "$DE" = xfce ] || { dim "emoji picker: scorciatoia via xfconf (solo XFCE)"; return 0; }
+  step "Emoji picker (Super+Ctrl+Spazio)"
+  install -Dm755 "$ASSETS/bin/macos-emoji.sh" "$HOME/.local/bin/macos-emoji.sh"
+  have rofi || dim "rofi non installato: il picker non si aprirà finché non lo installi"
+  dim "scorciatoia Super+Ctrl+Spazio cablata nello XML delle scorciatoie (c_panel)"
+  ok "emoji picker installato"
+}
+
+c_dynwall() {
+  [ "$DE" = xfce ] || { dim "dynamic wallpaper: solo XFCE"; return 0; }
+  if [ -n "${WALLPAPER:-}" ]; then
+    dim "wallpaper personalizzato (--wallpaper): salto il dynamic wallpaper per non sovrascriverlo"
+    return 0
+  fi
+  have systemctl || { dim "systemd non disponibile: salto il dynamic wallpaper"; return 0; }
+  step "Dynamic wallpaper (chiaro di giorno, scuro di notte)"
+  install -Dm755 "$ASSETS/bin/macos-dynamic-wallpaper.sh" "$HOME/.local/bin/macos-dynamic-wallpaper.sh"
+  # serve una coppia chiaro/scuro: i gradienti liberi inclusi nel pacchetto
+  mkdir -p "$HOME/.local/share/wallpapers"
+  local g
+  for g in gradient-light.jpg gradient-dark.jpg; do
+    [ -f "$ASSETS/wallpapers/$g" ] && cp -n "$ASSETS/wallpapers/$g" "$HOME/.local/share/wallpapers/" 2>/dev/null || true
+  done
+  mkdir -p "$HOME/.config/systemd/user"
+  sed "s#@HOME@#$HOME#g" "$ASSETS/systemd/macos-dynamic-wallpaper.service" \
+    > "$HOME/.config/systemd/user/macos-dynamic-wallpaper.service"
+  cp "$ASSETS/systemd/macos-dynamic-wallpaper.timer" \
+    "$HOME/.config/systemd/user/macos-dynamic-wallpaper.timer"
+  systemctl --user daemon-reload 2>/dev/null || true
+  systemctl --user enable --now macos-dynamic-wallpaper.timer 2>/dev/null \
+    || warn "timer non avviato (sessione senza systemd user?)"
+  ok "dynamic wallpaper (timer ogni 30 min)"
+}
+
 ###############################################################################
 # MAIN
 ###############################################################################
@@ -604,6 +739,10 @@ echo "${C_BLUE}macOS-XFCE installer${C_OFF}  (utente: $USER, home: $HOME, ambien
 [ "$DO_TOUCHEGG" = 1 ] && c_touchegg
 [ "$DO_NOTIFY"   = 1 ] && c_notify
 [ "$DO_WALLPAPER" = 1 ] && c_wallpaper
+[ "$DO_INPUT"    = 1 ] && c_input
+[ "$DO_FINDER"   = 1 ] && c_finder
+[ "$DO_EMOJI"    = 1 ] && c_emoji
+[ "$DO_DYNWALL"  = 1 ] && c_dynwall
 [ "$DO_GREETER"  = 1 ] && c_greeter
 [ "$DO_PLYMOUTH" = 1 ] && c_plymouth
 

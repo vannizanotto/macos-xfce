@@ -70,7 +70,14 @@ the password where needed: packages, greeter, plymouth). After the installation,
 | `--only LIST` | Execute only the listed components. |
 | `--yes` | Non-interactive mode. |
 
-Components for `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,greeter,plymouth`.
+Components for `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,input,finder,emoji,dynwall,greeter,plymouth`.
+
+The `input`, `finder`, `emoji` and `dynwall` components add, respectively: macOS-style
+natural scrolling, a Finder-like Thunar with Quick Look (Space → gnome-sushi),
+an emoji picker (Super+Ctrl+Space, rofi+xdotool), and a light/dark dynamic
+wallpaper (systemd user timer). The Apple menu uses a frosted-light CSS
+(`~/.config/macos-xfce/apple-menu.css`) and the panel clock is a genmon applet
+that opens `gsimplecal` on click.
 
 ## Login screen (nody-greeter)
 

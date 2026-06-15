@@ -1,0 +1,5 @@
+Command=@HOME@/.local/bin/macos-clock-genmon.sh
+UseLabel=0
+Text=(genmon)
+UpdatePeriod=10000
+Font=SF Pro Text 10

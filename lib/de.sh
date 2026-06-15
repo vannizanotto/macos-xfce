@@ -102,6 +102,21 @@ de_set_mnemonics_off() {
   esac
 }
 
+# Resa font stile Retina: antialiasing grayscale (no subpixel). Il grosso lo fa
+# fontconfig (~/.config/fontconfig/fonts.conf, universale); qui allineiamo anche
+# le impostazioni Xft di XFCE che altrimenti riaccenderebbero il subpixel.
+de_set_font_rendering() {
+  case "$DE" in
+    xfce)
+      xfconf-query -c xsettings -p /Xft/RGBA -t string -s none --create
+      xfconf-query -c xsettings -p /Xft/Antialias -t int -s 1 --create
+      xfconf-query -c xsettings -p /Xft/Hinting -t int -s 1 --create
+      xfconf-query -c xsettings -p /Xft/HintStyle -t string -s hintslight --create
+      ;;
+    cinnamon) : ;;  # gestito da fontconfig
+  esac
+}
+
 # --- tema del window manager (decorazioni) ----------------------------------
 de_set_wm_theme() {  # NAME (es. WhiteSur-Light o variante hdpi su XFCE)
   case "$DE" in

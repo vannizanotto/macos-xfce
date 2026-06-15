@@ -64,6 +64,7 @@
       <property name="override" type="bool" value="true"/>
       <property name="&lt;Super&gt;space" type="string" value="xfce4-appfinder --collapsed"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;End" type="string" value="@HOME@/.local/bin/macos-power-dialog"/>
+      <property name="&lt;Primary&gt;&lt;Super&gt;space" type="string" value="@HOME@/.local/bin/macos-emoji.sh"/>
       <property name="&lt;Super&gt;&lt;Shift&gt;3" type="string" value="xfce4-screenshooter -f"/>
       <property name="&lt;Super&gt;&lt;Shift&gt;4" type="string" value="xfce4-screenshooter -r"/>
       <property name="&lt;Super&gt;&lt;Shift&gt;5" type="string" value="xfce4-screenshooter"/>

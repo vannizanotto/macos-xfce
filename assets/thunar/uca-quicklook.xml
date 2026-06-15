@@ -1,0 +1,16 @@
+<action>
+	<icon>edit-find</icon>
+	<name>Quick Look</name>
+	<submenu></submenu>
+	<unique-id>macosxfce-quicklook-1</unique-id>
+	<command>sushi %F</command>
+	<description>Anteprima rapida stile macOS (premi Spazio)</description>
+	<range></range>
+	<patterns>*</patterns>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+	<directories/>
+</action>

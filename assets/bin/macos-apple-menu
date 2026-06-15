@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# Menu Apple in stile macOS per XFCE: dropdown che si apre dal logo (limone) nel
-# pannello. Sostituisce il Whisker menu sul bottone-logo con un vero menu di
-# sistema (Informazioni su questo Mac, Impostazioni, Stop/Riavvia/Spegni, ...).
-# Il launcher delle app (Launchpad) resta separato, nel dock.
+# Menu Apple in stile macOS per XFCE: dropdown che si apre dal logo nel pannello.
+# Sostituisce il Whisker menu sul bottone-logo con un vero menu di sistema.
+# La CSS si carica da ~/.config/macos-xfce/apple-menu.css se presente
+# (fallback chiaro qui sotto).
 import gi, subprocess, signal, os, platform
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib
@@ -10,15 +10,26 @@ from gi.repository import Gtk, Gdk, GLib
 SESSION = "/usr/bin/xfce4-session-logout"
 HOME = os.path.expanduser("~")
 POWER = os.path.join(HOME, ".local/bin/macos-power-dialog")
+CSS_FILE = os.path.join(HOME, ".config/macos-xfce/apple-menu.css")
 
-CSS = b"""
-menu { background-color: rgba(40,40,42,0.94); border-radius: 10px;
-       border: 1px solid rgba(255,255,255,0.12); padding: 5px; }
-menuitem { color: rgba(255,255,255,0.92); border-radius: 6px; padding: 5px 30px 5px 18px;
-           font-family: "SF Pro Text","Inter",sans-serif; font-size: 14px; }
-menuitem:hover { background-color: #2563eb; color: #ffffff; }
-separator { background-color: rgba(255,255,255,0.14); min-height: 1px; margin: 5px 6px; }
+# Fallback chiaro/frosted (HiDPI-safe: nessun font-size in px, eredita SF Pro Text scalato dal DPI)
+CSS_FALLBACK = b"""
+menu { background-color: rgba(246,246,247,0.72); border-radius: 12px;
+       border: 1px solid rgba(0,0,0,0.08); padding: 6px; }
+menuitem { color: #1d1d1f; border-radius: 6px; padding: 6px 40px 6px 22px;
+           font-family: "SF Pro Text","Inter",sans-serif; }
+menuitem:hover { background-color: #0a84ff; color: #ffffff; }
+separator { background-color: rgba(0,0,0,0.12); min-height: 1px; margin: 5px 8px; }
 """
+
+def load_css():
+    if os.path.exists(CSS_FILE):
+        try:
+            with open(CSS_FILE, "rb") as f:
+                return f.read()
+        except Exception:
+            pass
+    return CSS_FALLBACK
 
 def run(cmd):
     try:
@@ -63,7 +74,6 @@ def build_menu():
     sep()
     item("Uscita forzata…",          lambda *_: run(["xkill"]))
     sep()
-    # azioni power instradate sul dialogo macOS (mai il dialogo XFCE di default)
     powr = (lambda: run([POWER])) if os.path.exists(POWER) else None
     item("Stop",         lambda *_: run([SESSION, "-s"]))
     item("Riavvia…",     lambda *_: (powr() if powr else run([SESSION, "-r"])))
@@ -77,13 +87,18 @@ def build_menu():
 def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     screen = Gdk.Screen.get_default()
-    prov = Gtk.CssProvider(); prov.load_from_data(CSS)
+    prov = Gtk.CssProvider()
+    try:
+        prov.load_from_data(load_css())
+    except Exception as e:
+        # CSS esterna non valida -> fallback robusto, non crashare
+        print("apple-menu: CSS esterna non valida, uso il fallback:", e)
+        prov = Gtk.CssProvider()
+        prov.load_from_data(CSS_FALLBACK)
     Gtk.StyleContext.add_provider_for_screen(
         screen, prov, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
     menu = build_menu()
     menu.connect("selection-done", lambda *_: GLib.timeout_add(80, Gtk.main_quit))
-    # ancorato in alto a sinistra (sotto il logo nel pannello), senza serve un
-    # evento: popup_at_rect sulla root window.
     root = Gdk.get_default_root_window()
     rect = Gdk.Rectangle(); rect.x, rect.y, rect.width, rect.height = 6, 2, 1, 1
     menu.popup_at_rect(root, rect, Gdk.Gravity.SOUTH_WEST, Gdk.Gravity.NORTH_WEST, None)

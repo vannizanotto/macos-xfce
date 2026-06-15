@@ -154,7 +154,7 @@
             "places",
             "recents",
             "emoji:",
-            "/home/vanni"
+            "@HOME@"
         ]
     },
     "custom-menu-width": {
@@ -175,13 +175,13 @@
     "search-start-folder": {
         "type": "generic",
         "default": "",
-        "value": "/home/vanni"
+        "value": "@HOME@"
     },
     "folder-categories": {
         "type": "generic",
         "default": [],
         "value": [
-            "/home/vanni"
+            "@HOME@"
         ]
     },
     "all-apps-old-style": {

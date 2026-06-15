@@ -18,13 +18,24 @@ if have xfconf-query; then
   xq -c xfce4-notifyd -p /theme -s Default 2>/dev/null || true
   xq -c xfdashboard -p /theme -s Default 2>/dev/null || true
   xq -c xsettings -p /Xft/DPI -s 96 2>/dev/null || true
+  xq -c xsettings -p /Xft/RGBA -s rgb 2>/dev/null || true
+fi
+
+# dynamic wallpaper: disattiva il timer utente
+if have systemctl; then
+  systemctl --user disable --now macos-dynamic-wallpaper.timer 2>/dev/null || true
 fi
 
 step "Rimozione autostart e script utente"
 rm -f "$HOME/.config/autostart/picom.desktop" \
       "$HOME/.config/autostart/macos-hot-corners.desktop" \
+      "$HOME/.config/autostart/macos-natural-scroll.desktop" \
       "$HOME/.config/autostart/plank.desktop"
-rm -f "$HOME/.local/bin/macos-power-dialog" "$HOME/.local/bin/macos-hot-corners"
+rm -f "$HOME/.local/bin/macos-power-dialog" "$HOME/.local/bin/macos-hot-corners" \
+      "$HOME/.local/bin/macos-natural-scroll.sh" "$HOME/.local/bin/macos-clock-genmon.sh" \
+      "$HOME/.local/bin/macos-emoji.sh" "$HOME/.local/bin/macos-dynamic-wallpaper.sh"
+rm -f "$HOME/.config/systemd/user/macos-dynamic-wallpaper.service" \
+      "$HOME/.config/systemd/user/macos-dynamic-wallpaper.timer"
 
 # ferma i processi (per PID, niente pkill -f)
 for n in picom picom-anim plank xfdashboard; do

@@ -1,0 +1,31 @@
+/* apple-menu.css - menu Apple a tendina, stile macOS (light/frosted).
+ * HiDPI-safe: nessun font-size in px (eredita SF Pro Text scalato dal DPI).
+ * NB: solo proprietà GTK-CSS valide. 'cursor' e 'display' NON esistono in
+ * GTK-CSS e fanno crashare load_from_data: non aggiungerle. */
+
+menu {
+    background-color: rgba(246, 246, 247, 0.72);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 6px 0;
+    font-family: "SF Pro Text", "Inter", sans-serif;
+    color: #1d1d1f;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+menuitem {
+    padding: 6px 40px 6px 22px;
+    margin: 0 6px;
+    border-radius: 6px;
+}
+
+menuitem:hover {
+    background-color: #0a84ff;
+    color: #ffffff;
+}
+
+separator {
+    min-height: 1px;
+    background-color: rgba(0, 0, 0, 0.12);
+    margin: 6px 12px;
+}

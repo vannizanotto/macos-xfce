@@ -53,11 +53,10 @@
       <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
       <property name="enable-mpris" type="bool" value="true"/>
     </property>
-    <property name="plugin-13" type="string" value="clock">
-      <property name="digital-layout" type="uint" value="3"/>
-      <property name="digital-time-format" type="string" value="%a %d %b  %H:%M"/>
-      <property name="digital-time-font" type="string" value="SF Pro Text 10"/>
-    </property>
+    <!-- Orologio = genmon (macos-clock-genmon.sh): data+ora in SF Pro Text e
+         calendario gsimplecal al click. La config del plugin sta nel file
+         genmon-13.rc (genmon non usa xfconf), installato da c_panel. -->
+    <property name="plugin-13" type="string" value="genmon"/>
     <property name="plugin-15" type="string" value="appmenu"/>
     <property name="plugin-20" type="string" value="launcher">
       <property name="items" type="array">
