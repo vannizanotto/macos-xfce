@@ -163,9 +163,14 @@ de_set_wallpaper() {  # PATH
     xfce)
       local p
       local found=0
-      for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep last-image || true); do
+      # copre sia last-image (per-workspace) sia last-single-image (modalità a
+      # immagine unica di xfdesktop 4.18, default su Mint 22): senza coprire
+      # entrambi, su una sessione fresca lo sfondo della distro non viene
+      # sostituito (resta il wallpaper Mint -> look "mix").
+      for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep -E 'last-image$|last-single-image$' || true); do
         xfconf-query -c xfce4-desktop -p "$p" -s "$1" 2>/dev/null || true
-        xfconf-query -c xfce4-desktop -p "${p%last-image}image-style" -t int -s 5 --create 2>/dev/null || true
+        xfconf-query -c xfce4-desktop -p "${p%/*}/image-style" -t int -s 5 --create 2>/dev/null || true
+        xfconf-query -c xfce4-desktop -p "${p%/*}/image-show" -t bool -s true --create 2>/dev/null || true
         found=1
       done
       if [ "$found" = 0 ] && [ -n "${DISPLAY:-}" ]; then
@@ -211,6 +216,29 @@ de_set_hot_corners() {
     xfce) : ;; # Fatto via xfdashboard in install.sh
     cinnamon)
       gset org.cinnamon hotcorner-layout "['scale:true:0', 'scale:false:0', 'expo:false:0', 'desktop:true:0']"
+      ;;
+  esac
+}
+
+# --- desktop pulito (niente icone Computer/Home/Cestino, come macOS) ---------
+de_set_desktop_icons_off() {
+  case "$DE" in
+    xfce)
+      # style: 0=niente, 1=icone finestre minimizzate, 2=file/launcher.
+      # Mettiamo a 0 E spegniamo le singole chiavi show-* (alcune versioni di
+      # xfdesktop mostrano Home/Cestino/Filesystem/Volumi anche con style basso).
+      xfconf-query -c xfce4-desktop -p /desktop-icons/style -t int -s 0 --create 2>/dev/null || true
+      local k
+      for k in show-home show-trash show-filesystem show-removable; do
+        xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/$k" -t bool -s false --create 2>/dev/null || true
+      done
+      ;;
+    cinnamon)
+      gset org.nemo.desktop computer-icon-visible false
+      gset org.nemo.desktop home-icon-visible false
+      gset org.nemo.desktop trash-icon-visible false
+      gset org.nemo.desktop volumes-visible false
+      gset org.nemo.desktop network-icon-visible false
       ;;
   esac
 }

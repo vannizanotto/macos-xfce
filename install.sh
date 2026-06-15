@@ -248,8 +248,29 @@ c_sfpro() {
   fi
 }
 
+# Le "welcome" delle distro (mintwelcome, ecc.) partono da /etc/xdg/autostart e
+# spuntano ad ogni login rompendo il look macOS. Le silenziamo con un override
+# utente Hidden=true (non si toccano i file di sistema).
+suppress_distro_welcome() {
+  mkdir -p "$HOME/.config/autostart"
+  local f base
+  for f in /etc/xdg/autostart/*welcome*.desktop; do
+    [ -e "$f" ] || continue
+    base="$(basename "$f")"
+    cat > "$HOME/.config/autostart/$base" <<EOF
+[Desktop Entry]
+Type=Application
+Name=disabilitato da macOS-XFCE
+Hidden=true
+X-GNOME-Autostart-enabled=false
+EOF
+    dim "welcome distro silenziato: $base"
+  done
+}
+
 c_panel() {
   step "Pannello (menu bar) + scorciatoie"
+  suppress_distro_welcome
   de_set_panel_top
   if [ "$DE" = "cinnamon" ]; then
     # Menu-bar macOS su Cinnamon: applet Cinnamenu (menu) + calendario al centro +
@@ -339,7 +360,10 @@ EOF
   # disco da xfconfd, quindi vengono ricaricate intatte.
   if [ -n "${DISPLAY:-}" ] && have xfce4-panel; then
     sleep 1
-    xfce4-panel --quit 2>/dev/null || true
+    # NB: 'xfce4-panel --quit' può APPENDERSI se il panel non risponde sul bus
+    # (visto in sessioni instabili/annidate); il '|| true' non protegge da un
+    # hang. timeout + fallback a kill diretto del processo per nome.
+    timeout 8 xfce4-panel --quit 2>/dev/null || pkill -x xfce4-panel 2>/dev/null || true
     pkill -x xfconfd 2>/dev/null || true
     sleep 1
     setsid xfce4-panel >/dev/null 2>&1 &
@@ -399,7 +423,12 @@ EOF
     dconf write /net/launchpad/plank/docks/dock1/dock-items \
       "['launchpad.dockitem', 'google-chrome.dockitem', 'thunar.dockitem', 'libreoffice-writer.dockitem', 'libreoffice-calc.dockitem', 'xfce4-terminal.dockitem', 'trash.dockitem']" 2>/dev/null || true
   fi
-  have plank && (pgrep -x plank >/dev/null || setsid plank >/dev/null 2>&1 &) || true
+  # restart (non solo "avvia se assente"): un plank già attivo NON rilegge il
+  # tema dopo il dconf write -> resterebbe col tema scuro di default.
+  if have plank && [ -n "${DISPLAY:-}" ]; then
+    pkill -x plank 2>/dev/null; sleep 1
+    setsid plank >/dev/null 2>&1 &
+  fi
   ok "plank"
 }
 
@@ -419,7 +448,9 @@ c_picom() {
   # (effetto vetro SENZA blur) ed è stabile ovunque. Con GPU vera -> picom pieno.
   local gpu=1
   if command -v systemd-detect-virt >/dev/null && systemd-detect-virt -q 2>/dev/null; then gpu=0; fi
-  if have glxinfo && glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast)'; then gpu=0; fi
+  # NB: glxinfo può APPENDERSI (visto su una sessione X non attiva/su un VT in
+  # background): lo limitiamo con timeout così il rilevamento GPU non blocca mai.
+  if have glxinfo && timeout 8 glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast)'; then gpu=0; fi
   if [ "$gpu" = 0 ]; then
     warn "nessuna accelerazione GPU (VM/render software): niente picom (freeza), uso compositing xfwm4"
     need_xfconf
@@ -549,8 +580,11 @@ c_wallpaper() {
     img="$HOME/.local/share/wallpapers/$wp"
   fi
   de_set_wallpaper "$img"
+  # Desktop pulito stile macOS: senza questo restano le icone della distro
+  # (Computer/Home/Cestino) sul desktop e il look diventa un "mix" Mint/macOS.
+  de_set_desktop_icons_off
   [ -n "${DISPLAY:-}" ] && [ "$DE" = "xfce" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
-  ok "wallpaper impostato"
+  ok "wallpaper impostato + desktop pulito"
 }
 
 c_greeter() {
