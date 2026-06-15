@@ -132,6 +132,26 @@ need_xfconf() { have xfconf-query || { err "xfconf-query non trovato: sei in XFC
 # creano per giunta un desktop ibrido (pannello XFCE dentro Cinnamon).
 xfce_live() { [ -n "${DISPLAY:-}" ] && pgrep -x xfwm4 >/dev/null 2>&1; }
 
+# picom (backend glx) gira in modo AFFIDABILE? NO dentro una VM, con render
+# software (llvmpipe) o su GPU deboli (nouveau/NVAF): il glx CONGELA il desktop
+# o divora CPU (testato su GeForce 320M/nouveau) -> meglio il compositing interno
+# di xfwm4 (vetro senza blur, stabile ovunque). Cache: la detection (glxinfo,
+# lenta) gira una sola volta. Ritorna 0 = picom ok, 1 = usa il fallback xfwm4.
+# Usata sia da c_picom sia da c_theme (per il flatten degli angoli, che ha senso
+# SOLO se picom poi li arrotonda; senza picom lascia gli angoli nativi del tema).
+_PICOM_VIABLE=""
+picom_viable() {
+  if [ -z "$_PICOM_VIABLE" ]; then
+    _PICOM_VIABLE=0
+    if command -v systemd-detect-virt >/dev/null && systemd-detect-virt -q 2>/dev/null; then _PICOM_VIABLE=1; fi
+    if [ "$_PICOM_VIABLE" = 0 ] && have glxinfo && \
+       timeout 8 glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast|NVAF|nouveau)'; then
+      _PICOM_VIABLE=1
+    fi
+  fi
+  return "$_PICOM_VIABLE"
+}
+
 # Auto-rileva una scala sensata dalla densità FISICA dello schermo (xrandr:
 # pixel + mm), così l'utente generico non deve conoscere il proprio DPI.
 # Ritorna un Xft.DPI (144/192/240) o "" se densità normale / non rilevabile.
@@ -224,10 +244,15 @@ c_theme() {
         && (cd "$tmp/cur" && ./install.sh) || warn "WhiteSur cursori ko"
     fi
     rm -rf "$tmp"
-    # patch: angoli + batteria (richiedono python3-pil / sed)
+    # patch angoli: appiattisce i corner TOP del tema xfwm4 SOLO se picom poi li
+    # arrotonda tutti e 4 (GPU ok). Senza picom (VM/nouveau) NON va appiattito,
+    # altrimenti le finestre restano coi corner tutti quadri invece dei top
+    # arrotondati nativi del tema (Antigravity: "idea geniale"). + batteria.
     local var; var="$(theme_variant)"
-    if [ -d "$HOME/.themes/$var/xfwm4" ] && have python3; then
+    if picom_viable && [ -d "$HOME/.themes/$var/xfwm4" ] && have python3; then
       python3 "$ASSETS/patches/flatten-corners.py" "$HOME/.themes/$var/xfwm4" || warn "flatten angoli ko"
+    else
+      dim "flatten angoli saltato (niente picom: si tengono i corner nativi del tema)"
     fi
     [ -d "$HOME/.local/share/icons/WhiteSur-light" ] && \
       bash "$ASSETS/patches/battery-fix.sh" "$HOME/.local/share/icons/WhiteSur-light" || true
@@ -505,16 +530,9 @@ c_scaling() {
 c_picom() {
   de_needs_picom || { dim "picom non necessario per $DE (compositor integrato)"; return 0; }
   step "Compositor / effetto vetro"
-  # Rilevamento accelerazione GPU: con render software (llvmpipe) o dentro una VM,
-  # il backend glx di picom CONGELA il desktop (display bloccato). In quel caso si
-  # usa il compositing interno di xfwm4 (Xrender): dà la trasparenza del pannello
-  # (effetto vetro SENZA blur) ed è stabile ovunque. Con GPU vera -> picom pieno.
-  local gpu=1
-  if command -v systemd-detect-virt >/dev/null && systemd-detect-virt -q 2>/dev/null; then gpu=0; fi
-  # NB: glxinfo può APPENDERSI (visto su una sessione X non attiva/su un VT in
-  # background): lo limitiamo con timeout così il rilevamento GPU non blocca mai.
-  if have glxinfo && timeout 8 glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast|NVAF|nouveau)'; then gpu=0; fi
-  if [ "$gpu" = 0 ]; then
+  # picom (glx) affidabile? Vedi picom_viable(): no su VM/render software/GPU
+  # deboli (nouveau/NVAF) -> compositing interno di xfwm4 (vetro senza blur).
+  if ! picom_viable; then
     warn "GPU problematica rilevata (VM/Nouveau): niente picom (freeza), uso compositing xfwm4"
     need_xfconf
     xq -c xfwm4 -p /general/use_compositing -t bool -s true --create
