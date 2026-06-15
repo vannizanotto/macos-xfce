@@ -24,8 +24,9 @@ def gradient(w, h, stops):
             px[0, y] = stops[-1][1]
     return img.resize((w, h))
 
-LIGHT = [(0.0, (84, 142, 255)), (0.38, (120, 96, 224)),
-         (0.66, (228, 122, 178)), (1.0, (248, 240, 236))]
+# "Big Sur aurora": teal in alto -> blu -> magenta in basso. La parte alta
+# satura fa risaltare il blur della menu bar.
+LIGHT = [(0.0, (25, 195, 178)), (0.45, (46, 107, 255)), (1.0, (193, 58, 255))]
 DARK  = [(0.0, (34, 46, 92)), (0.5, (44, 32, 74)), (1.0, (14, 15, 24))]
 
 def main(out):
