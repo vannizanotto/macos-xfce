@@ -17,7 +17,7 @@ Menu logo (lemon, instead of the apple):
 
 ### Desktop Preview
 
-<img src="docs/desktop-preview.png" width="800" alt="Desktop Preview">
+<img src="docs/desktop-preview-v2.png" width="800" alt="Desktop Preview">
 
 ## Installation
 
