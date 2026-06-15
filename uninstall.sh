@@ -30,10 +30,12 @@ step "Rimozione autostart e script utente"
 rm -f "$HOME/.config/autostart/picom.desktop" \
       "$HOME/.config/autostart/macos-hot-corners.desktop" \
       "$HOME/.config/autostart/macos-natural-scroll.desktop" \
+      "$HOME/.config/autostart/macos-xfce-firstrun.desktop" \
       "$HOME/.config/autostart/plank.desktop"
 rm -f "$HOME/.local/bin/macos-power-dialog" "$HOME/.local/bin/macos-hot-corners" \
       "$HOME/.local/bin/macos-natural-scroll.sh" "$HOME/.local/bin/macos-clock-genmon.sh" \
-      "$HOME/.local/bin/macos-emoji.sh" "$HOME/.local/bin/macos-dynamic-wallpaper.sh"
+      "$HOME/.local/bin/macos-emoji.sh" "$HOME/.local/bin/macos-dynamic-wallpaper.sh" \
+      "$HOME/.local/bin/macos-xfce-firstrun.sh"
 rm -f "$HOME/.config/systemd/user/macos-dynamic-wallpaper.service" \
       "$HOME/.config/systemd/user/macos-dynamic-wallpaper.timer"
 

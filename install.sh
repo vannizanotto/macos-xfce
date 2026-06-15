@@ -638,6 +638,28 @@ c_wallpaper() {
   # (Computer/Home/Cestino) sul desktop e il look diventa un "mix" Mint/macOS.
   de_set_desktop_icons_off
   [ -n "${DISPLAY:-}" ] && [ "$DE" = "xfce" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
+  # Autostart "firstrun" (una tantum): se l'install è girato in un contesto
+  # diverso dal login reale (SSH/headless/altro monitor), xfdesktop applica il
+  # wallpaper sul monitor del LOGIN, che può avere ancora lo sfondo della distro.
+  # Questo autostart lo ri-applica sul monitor effettivo al primo login, poi si
+  # auto-rimuove. Risolve anche il desktop-icons sul monitor giusto.
+  if [ "$DE" = xfce ]; then
+    mkdir -p "$HOME/.config/macos-xfce" "$HOME/.local/bin" "$HOME/.config/autostart"
+    printf '%s\n' "$img" > "$HOME/.config/macos-xfce/wallpaper"
+    install -Dm755 "$ASSETS/bin/macos-xfce-firstrun.sh" "$HOME/.local/bin/macos-xfce-firstrun.sh"
+    cat > "$HOME/.config/autostart/macos-xfce-firstrun.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=macOS-XFCE first-run
+Comment=Applica wallpaper/desktop sul monitor reale al primo login, poi si rimuove
+Exec=$HOME/.local/bin/macos-xfce-firstrun.sh
+OnlyShowIn=XFCE;
+X-XFCE-Autostart-enabled=true
+StartupNotify=false
+Terminal=false
+EOF
+    dim "firstrun: wallpaper/desktop si ri-applicano sul monitor reale al primo login"
+  fi
   ok "wallpaper impostato + desktop pulito"
 }
 
