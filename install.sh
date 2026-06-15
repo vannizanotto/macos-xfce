@@ -419,7 +419,7 @@ EOF
   # alla ripartenza xfconfd rilegge gli XML appena scritti. Le impostazioni di
   # xsettings/xfwm4 fatte prima via xfconf-query sono già state scaricate su
   # disco da xfconfd, quindi vengono ricaricate intatte.
-  if [ -n "${DISPLAY:-}" ] && have xfce4-panel; then
+  if xfce_live && have xfce4-panel; then
     sleep 1
     # NB: 'xfce4-panel --quit' può APPENDERSI se il panel non risponde sul bus
     # (visto in sessioni instabili/annidate); il '|| true' non protegge da un
@@ -430,7 +430,7 @@ EOF
     setsid xfce4-panel >/dev/null 2>&1 &
     ok "pannello applicato (menu bar, systray, scorciatoie)"
   else
-    warn "nessun DISPLAY: pannello configurato, si applica al prossimo login"
+    warn "non in una sessione XFCE viva: pannello configurato, si applica al login XFCE"
     ok "pannello configurato"
   fi
 }
@@ -486,7 +486,7 @@ EOF
   fi
   # restart (non solo "avvia se assente"): un plank già attivo NON rilegge il
   # tema dopo il dconf write -> resterebbe col tema scuro di default.
-  if have plank && [ -n "${DISPLAY:-}" ]; then
+  if have plank && xfce_live; then
     # NB: || true obbligatorio — su un'installazione fresca plank NON è in
     # esecuzione, pkill ritorna 1 e con 'set -e' aborterebbe l'installer.
     pkill -x plank 2>/dev/null || true; sleep 1
@@ -556,10 +556,15 @@ EOF
   xq -c xfwm4 -p /general/use_compositing -t bool -s false --create
   # margine = altezza del pannello superiore (default 52; adatta se diverso)
   xq -c xfwm4 -p /general/margin_top -t int -s 52 --create
-  # avvia subito
-  pgrep -x picom >/dev/null || pgrep -x picom-anim >/dev/null || \
-    (setsid bash -c "$exec_line" >/dev/null 2>&1 &) || true
-  ok "picom attivo"
+  # avvia subito SOLO se siamo in una sessione XFCE viva (altrimenti picom
+  # comporrebbe la sessione sbagliata; l'autostart lo lancia al login XFCE).
+  if xfce_live; then
+    pgrep -x picom >/dev/null || pgrep -x picom-anim >/dev/null || \
+      (setsid bash -c "$exec_line" >/dev/null 2>&1 &) || true
+    ok "picom attivo"
+  else
+    ok "picom configurato (parte al login XFCE)"
+  fi
 }
 
 build_picom_anim() {
@@ -604,9 +609,13 @@ EOF
   if have xfconf-query; then
     xq -c xfdashboard -p /theme -t string -s macOS --create 2>/dev/null || true
   fi
-  have xfdashboard && (pgrep -f xfdashboard >/dev/null || setsid xfdashboard --daemonize >/dev/null 2>&1 &) || true
-  pgrep -f "$HOME/.local/bin/macos-hot-corners" >/dev/null || \
-    (setsid "$HOME/.local/bin/macos-hot-corners" >/dev/null 2>&1 &) || true
+  # avvio live SOLO in XFCE: xfdashboard --daemonize si APPENDE in una sessione
+  # senza clutter/GL (es. Cinnamon); gli autostart li lanciano al login XFCE.
+  if xfce_live; then
+    have xfdashboard && (pgrep -f xfdashboard >/dev/null || setsid xfdashboard --daemonize >/dev/null 2>&1 &) || true
+    pgrep -f "$HOME/.local/bin/macos-hot-corners" >/dev/null || \
+      (setsid "$HOME/.local/bin/macos-hot-corners" >/dev/null 2>&1 &) || true
+  fi
   ok "hot corners + xfdashboard"
 }
 
@@ -646,7 +655,10 @@ c_wallpaper() {
   # Desktop pulito stile macOS: senza questo restano le icone della distro
   # (Computer/Home/Cestino) sul desktop e il look diventa un "mix" Mint/macOS.
   de_set_desktop_icons_off
-  [ -n "${DISPLAY:-}" ] && [ "$DE" = "xfce" ] && have xfdesktop && xfdesktop --reload >/dev/null 2>&1 || true
+  # reload del desktop SOLO in XFCE: 'xfdesktop --reload' senza un xfdesktop in
+  # esecuzione (es. lanciato da Cinnamon) avvia un processo in FOREGROUND e si
+  # appende -> timeout di sicurezza. Fuori da XFCE si applica al login (firstrun).
+  xfce_live && have xfdesktop && timeout 8 xfdesktop --reload >/dev/null 2>&1 || true
   # Autostart "firstrun" (una tantum): se l'install è girato in un contesto
   # diverso dal login reale (SSH/headless/altro monitor), xfdesktop applica il
   # wallpaper sul monitor del LOGIN, che può avere ancora lo sfondo della distro.
