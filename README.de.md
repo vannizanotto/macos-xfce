@@ -41,11 +41,14 @@ cd ~/.macos-xfce
 
 ### Beispiele:
 
-```bash
-# Sie können auch Optionen an das Schnell-Setup-Skript anhängen:
-# bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh) --dpi 192
+Standardmäßig **erkennt der Installer die Bildschirmskalierung automatisch** (HiDPI) und legt
+**XFCE als Standard-Anmeldesitzung** fest — ein normaler Benutzer führt ihn also einfach aus
+und meldet sich neu an, ohne Flags. Die Optionen dienen nur zur Feinabstimmung:
 
-./install.sh --dpi 192           # mit 2x HiDPI-Skalierung (Retina-ähnliche Bildschirme)
+```bash
+./install.sh                     # auto: erkennt DPI, setzt XFCE als Standardsitzung
+./install.sh --dpi 192           # erzwingt eine bestimmte Skalierung (überschreibt auto)
+./install.sh --no-scale          # Skalierung nicht ändern
 ./install.sh --greeter --plymouth   # installiert auch Anmeldebildschirm und Boot-Splash
 ./install.sh --no-sf-pro            # Inter statt SF Pro verwenden
 ./install.sh --only picom,power     # nur bestimmte Komponenten neu installieren
@@ -53,14 +56,16 @@ cd ~/.macos-xfce
 ```
 
 **Wichtig**: Führen Sie das Skript **als normaler Benutzer** aus, NICHT mit `sudo` (es wird
-nach dem Passwort fragen, wo es benötigt wird: Pakete, Greeter, Plymouth). Nach der Installation
-**abmelden/anmelden**: Panel, Tastenkombinationen und Autostart werden in der neuen Sitzung angewendet.
+nach dem Passwort fragen, wo es benötigt wird: Pakete, Greeter, Plymouth). Dann einfach
+**abmelden/anmelden**: XFCE ist bereits die Standardsitzung, und Panel/Tastenkombinationen/Autostart
+werden darauf angewendet.
 
 ### Hauptoptionen
 
 | Option | Effekt |
 |---|---|
-| `--dpi N` | Legt die Skalierung fest (`Xft.DPI` für XFCE, text-scaling für Cinnamon). Z.B. 144≈1.5×, 192≈2×, 240≈2.5×. Standard: unverändert. |
+| `--dpi N` | Legt die Skalierung fest (`Xft.DPI` für XFCE, text-scaling für Cinnamon). Z.B. 144≈1.5×, 192≈2×, 240≈2.5×. Standard: **automatisch erkannt** vom Bildschirm. |
+| `--no-scale` | Skalierung nicht ändern (deaktiviert die Auto-DPI). |
 | `--greeter` | Installiert den nody-greeter Anmeldebildschirm (benötigt die `.deb`, siehe unten). |
 | `--plymouth` | Installiert den Zitronen-Boot-Splash (generiert das initramfs neu). |
 | `--no-sf-pro` | SF Pro nicht herunterladen, Inter verwenden. |
@@ -70,7 +75,14 @@ nach dem Passwort fragen, wo es benötigt wird: Pakete, Greeter, Plymouth). Nach
 | `--only LISTE` | Führt nur die aufgelisteten Komponenten aus. |
 | `--yes` | Nicht-interaktiver Modus. |
 
-Komponenten für `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,greeter,plymouth`.
+Komponenten für `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,input,finder,emoji,dynwall,greeter,plymouth`.
+
+Die Komponenten `input`, `finder`, `emoji` und `dynwall` fügen jeweils hinzu: natürliches
+Scrollen im macOS-Stil, einen Finder-ähnlichen Thunar mit Quick Look (Leertaste → gnome-sushi),
+einen Emoji-Picker (Super+Strg+Leertaste, rofi+xdotool) und ein dynamisches helles/dunkles
+Hintergrundbild (systemd-Benutzer-Timer). Das Apple-Menü verwendet ein helles/frosted CSS
+(`~/.config/macos-xfce/apple-menu.css`) und die Panel-Uhr ist ein genmon-Applet, das beim
+Klick `gsimplecal` öffnet.
 
 ## Anmeldebildschirm (nody-greeter)
 

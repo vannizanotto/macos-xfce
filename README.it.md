@@ -1,12 +1,12 @@
-# macOS-XFCE
+# macOS-XFCE (Dual-DE: XFCE & Cinnamon)
 
-Trasforma un desktop **Linux Mint / Ubuntu con XFCE** in stile **macOS Sonoma**:
-tema WhiteSur, font SF Pro, menu bar con global menu + Spotlight, dock Plank,
-compositor con blur/angoli/ombre/animazioni (picom), dialogo di spegnimento, hot
+Trasforma un desktop **Linux Mint / Ubuntu con XFCE o Cinnamon** in stile **macOS Sonoma**:
+tema WhiteSur, font SF Pro, menu bar con global menu + Spotlight (XFCE), dock Plank,
+compositor con blur/angoli/ombre/animazioni (picom su XFCE), dialogo di spegnimento, hot
 corners, Mission Control, gesture touchpad, notifiche, **login screen** (greeter
 webkit) e **boot splash** (Plymouth).
 
-> Testato su Linux Mint 22.3 (Ubuntu 24.04 noble) + XFCE 4.18 + LightDM.
+> Testato su Linux Mint 22 (Ubuntu 24.04 noble) + XFCE 4.18 / Cinnamon + LightDM.
 > Su altri desktop/display-manager alcune parti vanno adattate.
 
 ## Anteprima
@@ -41,11 +41,14 @@ cd ~/.macos-xfce
 
 ### Esempi:
 
-```bash
-# Puoi accodare le opzioni anche allo script rapido:
-# bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh) --dpi 192
+Di default l'installer **rileva da solo la scala dello schermo** (HiDPI) e imposta
+**XFCE come sessione di login predefinita** — così un utente normale lo lancia e
+basta rientrare, senza flag. Le opzioni servono solo per la messa a punto:
 
-./install.sh --dpi 192           # con scala HiDPI 2x (schermi Retina-like)
+```bash
+./install.sh                     # auto: rileva il DPI, imposta XFCE come sessione default
+./install.sh --dpi 192           # forza una scala specifica (override dell'auto)
+./install.sh --no-scale          # non toccare la scala
 ./install.sh --greeter --plymouth   # installa anche login screen e boot splash
 ./install.sh --no-sf-pro            # usa Inter invece di SF Pro
 ./install.sh --only picom,power     # reinstalla solo alcuni componenti
@@ -53,14 +56,16 @@ cd ~/.macos-xfce
 ```
 
 **Importante**: lancia lo script **come utente normale**, NON con `sudo` (chiederà
-lui la password dove serve: pacchetti, greeter, plymouth). Dopo l'installazione fai
-**logout/login**: pannello, scorciatoie e autostart si applicano alla nuova sessione.
+lui la password dove serve: pacchetti, greeter, plymouth). Poi fai semplicemente
+**logout/login**: XFCE è già la sessione predefinita, e pannello/scorciatoie/autostart
+si applicano ad essa.
 
 ### Opzioni principali
 
 | Opzione | Effetto |
 |---|---|
-| `--dpi N` | imposta la scala (`Xft.DPI`). Es. 144≈1.5×, 192≈2×, 240≈2.5×. Default: invariata. |
+| `--dpi N` | imposta la scala (`Xft.DPI`). Es. 144≈1.5×, 192≈2×, 240≈2.5×. Default: **rilevata automaticamente** dallo schermo. |
+| `--no-scale` | non toccare la scala (disattiva l'auto-DPI). |
 | `--greeter` | installa il login screen nody-greeter (serve il `.deb`, vedi sotto). |
 | `--plymouth` | installa il boot splash limone (rigenera l'initramfs). |
 | `--no-sf-pro` | non scaricare SF Pro, usa Inter. |
@@ -70,7 +75,14 @@ lui la password dove serve: pacchetti, greeter, plymouth). Dopo l'installazione 
 | `--only LISTA` | esegui solo i componenti elencati. |
 | `--yes` | non interattivo. |
 
-Componenti per `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,greeter,plymouth`.
+Componenti per `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,input,finder,emoji,dynwall,greeter,plymouth`.
+
+I componenti `input`, `finder`, `emoji` e `dynwall` aggiungono, rispettivamente: scroll
+naturale stile macOS, un Thunar in stile Finder con Quick Look (Spazio → gnome-sushi),
+un selettore emoji (Super+Ctrl+Spazio, rofi+xdotool) e un wallpaper dinamico chiaro/scuro
+(timer systemd utente). Il menu Apple usa una CSS chiara/frosted
+(`~/.config/macos-xfce/apple-menu.css`) e l'orologio del pannello è un applet genmon che
+apre `gsimplecal` al click.
 
 ## Login screen (nody-greeter)
 
@@ -104,6 +116,8 @@ Test senza logout: `nody-greeter --mode debug --theme macos` (in debug appare un
   `gradient-light.jpg`; rigeneralo con `assets/wallpapers/gen_wallpaper.py`).
 - Le animazioni richiedono `picom-anim` (fork FT-Labs) compilato da sorgente: l'installer chiede
   conferma; `--no-animations` per saltarlo.
+- **Supporto Cinnamon**: l'installer usa uno strato di astrazione (`lib/de.sh`) per supportare
+  nativamente sia XFCE sia Cinnamon.
 
 ## Disinstallazione
 
