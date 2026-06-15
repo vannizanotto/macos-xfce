@@ -41,11 +41,14 @@ cd ~/.macos-xfce
 
 ### Examples:
 
-```bash
-# You can append options to the quick setup script too:
-# bash <(curl -sL https://raw.githubusercontent.com/vannizanotto/macos-xfce/HEAD/setup.sh) --dpi 192
+By default the installer **auto-detects your screen scaling** (HiDPI) and sets
+**XFCE as the default login session** — so a normal user just runs it and logs
+back in, no flags needed. Options are only for fine-tuning:
 
-./install.sh --dpi 192           # with 2x HiDPI scaling (Retina-like screens)
+```bash
+./install.sh                     # auto: detects DPI, sets XFCE as default session
+./install.sh --dpi 192           # force a specific scaling (override auto)
+./install.sh --no-scale          # don't touch scaling at all
 ./install.sh --greeter --plymouth   # also install login screen and boot splash
 ./install.sh --no-sf-pro            # use Inter instead of SF Pro
 ./install.sh --only picom,power     # reinstall only specific components
@@ -53,14 +56,15 @@ cd ~/.macos-xfce
 ```
 
 **Important**: run the script **as a normal user**, NOT with `sudo` (it will ask for
-the password where needed: packages, greeter, plymouth). After the installation,
-**logout/login**: panel, shortcuts, and autostart apply to the new session.
+the password where needed: packages, greeter, plymouth). Then just **logout/login**:
+XFCE is already the default session, and panel/shortcuts/autostart apply to it.
 
 ### Main Options
 
 | Option | Effect |
 |---|---|
-| `--dpi N` | Sets the scaling (`Xft.DPI` for XFCE, text-scaling for Cinnamon). E.g. 144≈1.5×, 192≈2×, 240≈2.5×. Default: unchanged. |
+| `--dpi N` | Sets the scaling (`Xft.DPI` for XFCE, text-scaling for Cinnamon). E.g. 144≈1.5×, 192≈2×, 240≈2.5×. Default: **auto-detected** from the screen. |
+| `--no-scale` | Don't touch scaling (disable auto-DPI). |
 | `--greeter` | Installs the nody-greeter login screen (requires the `.deb`, see below). |
 | `--plymouth` | Installs the lemon boot splash (regenerates the initramfs). |
 | `--no-sf-pro` | Do not download SF Pro, use Inter instead. |

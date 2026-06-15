@@ -14,7 +14,8 @@ ASSETS="$SCRIPT_DIR/assets"
 . "$SCRIPT_DIR/lib/de.sh"
 
 # --- default ----------------------------------------------------------------
-DPI=""                 # vuoto = non toccare la scala; es. 240 per HiDPI 2.5x
+DPI=""                 # vuoto = AUTO-rileva dallo schermo (--no-scale per non toccare)
+NO_SCALE=0             # 1 = non toccare la scala (niente auto-DPI)
 WALLPAPER=""           # vuoto = gradiente del pacchetto; altrimenti path a un'immagine tua
 ASSUME_YES=0
 DO_PACKAGES=1; DO_THEME=1; DO_SFPRO=1; DO_PANEL=1; DO_DOCK=1
@@ -36,7 +37,8 @@ Uso: ./install.sh [opzioni]
   --de TARGET        ambiente macOS: xfce (default, glass pieno via picom),
                      cinnamon (nativo, senza glass), auto (usa il DE in uso).
   --dpi N            imposta la scala (Xft.DPI). Es: 144 (1.5x), 192 (2x), 240 (2.5x).
-                     Default: non cambia la scala.
+                     Default: AUTO-rilevata dalla densità dello schermo.
+  --no-scale         non toccare la scala (disattiva l'auto-DPI).
   --wallpaper PATH   usa la TUA immagine come sfondo (es. un wallpaper macOS).
                      Default: gradiente libero incluso (non si possono redistribuire
                      le immagini Apple).
@@ -61,6 +63,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --de) DE_TARGET="$2"; shift 2;;
     --dpi) DPI="$2"; shift 2;;
+    --no-scale) NO_SCALE=1; shift;;
     --wallpaper) WALLPAPER="$2"; shift 2;;
     --yes|-y) ASSUME_YES=1; shift;;
     --greeter) DO_GREETER=1; shift;;
@@ -119,6 +122,44 @@ theme_variant() {
 }
 
 need_xfconf() { have xfconf-query || { err "xfconf-query non trovato: sei in XFCE?"; exit 1; }; }
+
+# Auto-rileva una scala sensata dalla densità FISICA dello schermo (xrandr:
+# pixel + mm), così l'utente generico non deve conoscere il proprio DPI.
+# Ritorna un Xft.DPI (144/192/240) o "" se densità normale / non rilevabile.
+auto_dpi() {
+  have xrandr || { echo ""; return; }
+  local line wpx wmm ppi
+  line="$(xrandr 2>/dev/null | grep -E ' connected (primary )?[0-9]+x[0-9]+\+' | head -1)"
+  [ -n "$line" ] || { echo ""; return; }
+  wpx="$(echo "$line" | grep -oE '[0-9]+x[0-9]+\+' | head -1 | cut -dx -f1)"
+  wmm="$(echo "$line" | grep -oE '[0-9]+mm x' | head -1 | grep -oE '^[0-9]+')"
+  { [ -n "$wpx" ] && [ -n "$wmm" ] && [ "$wmm" -gt 0 ]; } || { echo ""; return; }
+  ppi=$(( wpx * 254 / (wmm * 10) ))   # px per pollice (1 inch = 25.4mm)
+  if   [ "$ppi" -ge 220 ]; then echo 240
+  elif [ "$ppi" -ge 180 ]; then echo 192
+  elif [ "$ppi" -ge 140 ]; then echo 144
+  else echo ""; fi
+}
+
+# Imposta la sessione predefinita del display manager a XFCE, così al prossimo
+# login l'utente generico entra già nel desktop giusto senza doverlo scegliere.
+set_default_session_xfce() {
+  [ "$DE" = xfce ] || return 0
+  local sess
+  for sess in xfce xubuntu xfce4; do
+    [ -e "/usr/share/xsessions/$sess.desktop" ] && break
+  done
+  [ -e "/usr/share/xsessions/$sess.desktop" ] || { dim "nessuna sessione xfce in /usr/share/xsessions"; return 0; }
+  # ~/.dmrc (LightDM/altri lo leggono come default utente)
+  printf '[Desktop]\nSession=%s\n' "$sess" > "$HOME/.dmrc"
+  # AccountsService (LightDM moderno lo preferisce) — richiede root
+  local af="/var/lib/AccountsService/users/$USER"
+  if as_root test -e "$af" 2>/dev/null; then
+    as_root sed -i '/^XSession=/d' "$af" 2>/dev/null || true
+    as_root sh -c "printf 'XSession=%s\n' '$sess' >> '$af'" 2>/dev/null || true
+  fi
+  ok "sessione predefinita = $sess (al prossimo login parte XFCE)"
+}
 
 ###############################################################################
 # COMPONENTI
@@ -774,6 +815,13 @@ c_dynwall() {
 echo "${C_BLUE}macOS-XFCE installer${C_OFF}  (utente: $USER, home: $HOME, ambiente: ${C_GREEN}$DE${C_OFF})"
 [ "$(id -u)" = "0" ] && { err "non lanciare come root: usa il tuo utente (chiederà sudo dove serve)"; exit 1; }
 
+# Auto-DPI: se l'utente non ha passato --dpi (né --no-scale), rileva la scala
+# adatta dallo schermo, così l'utente generico non deve conoscere il suo DPI.
+if [ -z "$DPI" ] && [ "$NO_SCALE" = 0 ] && [ "$DE" = xfce ] && [ -n "${DISPLAY:-}" ]; then
+  DPI="$(auto_dpi)"
+  [ -n "$DPI" ] && step "Scala auto-rilevata: Xft.DPI=$DPI  (--dpi N o --no-scale per cambiare)"
+fi
+
 [ "$DO_PACKAGES" = 1 ] && c_packages
 [ "$DO_THEME"    = 1 ] && c_theme
 [ "$DO_SFPRO"    = 1 ] && c_sfpro
@@ -793,12 +841,15 @@ echo "${C_BLUE}macOS-XFCE installer${C_OFF}  (utente: $USER, home: $HOME, ambien
 [ "$DO_GREETER"  = 1 ] && c_greeter
 [ "$DO_PLYMOUTH" = 1 ] && c_plymouth
 
+# Sessione XFCE come default del DM: al prossimo login l'utente entra già nel
+# desktop giusto senza doverla scegliere a mano.
+[ "$ONLY" = "" ] && set_default_session_xfce
+
 echo
 step "Fatto."
-if [ "$DE" = xfce ] && pgrep -x xfwm4 >/dev/null 2>&1; then :; fi
 if [ "$DE" = xfce ] && ! pgrep -x xfwm4 >/dev/null 2>&1; then
   echo "  • ${C_GREEN}IMPORTANTE${C_OFF}: il look macOS (glass/blur/angoli/ombre) gira nella sessione ${C_GREEN}Xfce${C_OFF}."
-  echo "    Fai logout e, nella schermata di login, scegli la sessione ${C_GREEN}«Xfce»${C_OFF} (icona ingranaggio)."
+  echo "    L'ho impostata come predefinita: ti basta fare ${C_GREEN}logout/login${C_OFF} (parte già lei)."
 fi
 echo "  • Esegui un ${C_GREEN}logout/login${C_OFF} per applicare pannello, scorciatoie e autostart."
 echo "  • Per il login screen:  ./install.sh --only greeter   (dopo aver installato nody-greeter)"
