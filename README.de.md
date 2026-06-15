@@ -114,6 +114,12 @@ Test ohne Abmelden: `nody-greeter --mode debug --theme macos` (im Debug-Modus er
   Panel-Höhe ändern, aktualisieren Sie ihn.
 - Die **Unschärfe** der Menüleiste ist nur mit einem bunten oberen Hintergrundbild sichtbar (ein freier Farbverlauf
   `gradient-light.jpg` ist enthalten; generieren Sie ihn neu mit `assets/wallpapers/gen_wallpaper.py`).
+- **GPU-Voraussetzung für die Unschärfe**: Das Milchglas (und das Abrunden aller 4 Fensterecken) benötigt eine
+  GPU, die picoms `glx`-Backend zuverlässig ausführt. In VMs, bei Software-Rendering (llvmpipe) oder mit alten
+  GPUs (z. B. nouveau / NVAF) friert picom ein oder belastet die CPU, daher **erkennt der Installer dies
+  automatisch und greift auf das interne Compositing von xfwm4 zurück**: Sie erhalten weiterhin die
+  Transparenz von Fenstern/Panel und die nativen **abgerundeten oberen Ecken** des Themes, aber **keine
+  Unschärfe**. Der volle Glaslook benötigt eine Maschine mit funktionierender GPU-Beschleunigung (Intel/AMD/modernes NVIDIA).
 - Animationen erfordern `picom-anim` (FT-Labs Fork) aus dem Quellcode kompiliert: Der Installer bittet
   um Bestätigung; verwenden Sie `--no-animations` zum Überspringen.
 - **Cinnamon-Unterstützung**: Der Installer verwendet eine Abstraktionsschicht (`lib/de.sh`), um sowohl XFCE als auch Cinnamon nativ zu unterstützen.

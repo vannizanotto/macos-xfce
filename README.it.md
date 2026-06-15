@@ -114,6 +114,12 @@ Test senza logout: `nody-greeter --mode debug --theme macos` (in debug appare un
   l'altezza del pannello, aggiornalo.
 - Il **blur** della menu bar si vede solo con un wallpaper colorato in alto (incluso un gradiente libero
   `gradient-light.jpg`; rigeneralo con `assets/wallpapers/gen_wallpaper.py`).
+- **GPU richiesta per il blur**: il vetro smerigliato (e l'arrotondamento di tutti e 4 gli angoli delle
+  finestre) richiede una GPU che regga il backend `glx` di picom. Su VM, render software (llvmpipe) o
+  GPU datate (es. nouveau / NVAF) picom congela o divora la CPU, quindi l'installer **lo rileva da solo
+  e ripiega sul compositing interno di xfwm4**: hai comunque la trasparenza di finestre/pannello e gli
+  **angoli top arrotondati** nativi del tema, ma **niente blur**. Il vetro pieno serve una macchina con
+  accelerazione GPU funzionante (Intel/AMD/NVIDIA recente).
 - Le animazioni richiedono `picom-anim` (fork FT-Labs) compilato da sorgente: l'installer chiede
   conferma; `--no-animations` per saltarlo.
 - **Supporto Cinnamon**: l'installer usa uno strato di astrazione (`lib/de.sh`) per supportare

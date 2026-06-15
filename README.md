@@ -113,6 +113,12 @@ Test without logging out: `nody-greeter --mode debug --theme macos` (in debug mo
   the panel height, update it.
 - The **blur** of the menu bar is only visible with a colorful top wallpaper (a free gradient
   `gradient-light.jpg` is included; regenerate it with `assets/wallpapers/gen_wallpaper.py`).
+- **GPU requirement for blur**: the frosted glass (and rounding of all 4 window corners) needs a
+  GPU that runs picom's `glx` backend reliably. On VMs, software rendering (llvmpipe), or old GPUs
+  (e.g. nouveau / NVAF) picom freezes or hogs the CPU, so the installer **auto-detects this and
+  falls back to xfwm4's own compositing**: you still get window/panel transparency and the theme's
+  native **rounded top corners**, but **no blur**. The full glass look needs a machine with working
+  GPU acceleration (Intel/AMD/modern NVIDIA).
 - Animations require `picom-anim` (FT-Labs fork) compiled from source: the installer asks
   for confirmation; use `--no-animations` to skip.
 - **Cinnamon support**: The installer uses an abstraction layer (`lib/de.sh`) to support both XFCE and Cinnamon natively.
