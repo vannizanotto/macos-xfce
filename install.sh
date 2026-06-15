@@ -123,6 +123,15 @@ theme_variant() {
 
 need_xfconf() { have xfconf-query || { err "xfconf-query non trovato: sei in XFCE?"; exit 1; }; }
 
+# Siamo in una sessione XFCE VIVA (xfwm4 in esecuzione)? Le azioni "live"
+# (restart pannello/plank, xfdashboard, reload del desktop, avvio picom) hanno
+# senso solo lì. Se l'installer è lanciato da un'ALTRA sessione (es. Cinnamon,
+# default su molti Mint), vanno SALTATE: le config restano scritte e si applicano
+# al login XFCE. Altrimenti quei comandi si APPENDONO (xfdesktop --reload e
+# xfdashboard avviano un processo in foreground senza una sessione XFCE) e
+# creano per giunta un desktop ibrido (pannello XFCE dentro Cinnamon).
+xfce_live() { [ -n "${DISPLAY:-}" ] && pgrep -x xfwm4 >/dev/null 2>&1; }
+
 # Auto-rileva una scala sensata dalla densità FISICA dello schermo (xrandr:
 # pixel + mm), così l'utente generico non deve conoscere il proprio DPI.
 # Ritorna un Xft.DPI (144/192/240) o "" se densità normale / non rilevabile.
@@ -504,9 +513,9 @@ c_picom() {
   if command -v systemd-detect-virt >/dev/null && systemd-detect-virt -q 2>/dev/null; then gpu=0; fi
   # NB: glxinfo può APPENDERSI (visto su una sessione X non attiva/su un VT in
   # background): lo limitiamo con timeout così il rilevamento GPU non blocca mai.
-  if have glxinfo && timeout 8 glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast)'; then gpu=0; fi
+  if have glxinfo && timeout 8 glxinfo 2>/dev/null | grep -qiE 'renderer string.*(llvmpipe|softpipe|swrast|NVAF|nouveau)'; then gpu=0; fi
   if [ "$gpu" = 0 ]; then
-    warn "nessuna accelerazione GPU (VM/render software): niente picom (freeza), uso compositing xfwm4"
+    warn "GPU problematica rilevata (VM/Nouveau): niente picom (freeza), uso compositing xfwm4"
     need_xfconf
     xq -c xfwm4 -p /general/use_compositing -t bool -s true --create
     xq -c xfwm4 -p /general/margin_top -t int -s 52 --create
