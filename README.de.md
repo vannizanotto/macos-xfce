@@ -17,7 +17,7 @@ Menü-Logo (Zitrone statt Apfel):
 
 ### Desktop-Vorschau
 
-<img src="docs/desktop-preview.png" width="800" alt="Desktop-Vorschau">
+<img src="docs/preview-desktop.png" width="800" alt="Desktop-Vorschau">
 
 ## Installation
 

@@ -17,7 +17,7 @@ Logo del menu (limone, al posto della mela):
 
 ### Anteprima Desktop
 
-<img src="docs/desktop-preview.png" width="800" alt="Anteprima Desktop">
+<img src="docs/preview-desktop.png" width="800" alt="Anteprima Desktop">
 
 ## Installazione
 
