@@ -396,6 +396,7 @@ c_panel() {
   # genmon NON usa xfconf: la sua config va in genmon-13.rc (allineato a plugin-13
   # nel panel XML). Lo scriviamo PRIMA del restart del pannello qui sotto.
   install -Dm755 "$ASSETS/bin/macos-clock-genmon.sh" "$HOME/.local/bin/macos-clock-genmon.sh" 2>/dev/null || true
+  install -Dm755 "$ASSETS/bin/gsimplecal-toggle.sh" "$HOME/.local/bin/gsimplecal-toggle.sh" 2>/dev/null || true
   sed "s#@HOME@#$HOME#g" "$ASSETS/xfconf/genmon-13.rc" > "$HOME/.config/xfce4/panel/genmon-13.rc"
   # launcher (menu Apple, spotlight ecc.)
   cp -r "$ASSETS"/panel-launchers/launcher-* "$HOME/.config/xfce4/panel/" 2>/dev/null || true
