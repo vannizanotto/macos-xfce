@@ -41,12 +41,17 @@ cd ~/.macos-xfce
 
 ### Esempi:
 
-Di default l'installer **rileva da solo la scala dello schermo** (HiDPI) e imposta
-**XFCE come sessione di login predefinita** — così un utente normale lo lancia e
-basta rientrare, senza flag. Le opzioni servono solo per la messa a punto:
+Di default l'installer **tematizza il desktop in cui sei** (rileva XFCE o Cinnamon)
+e **rileva da solo la scala dello schermo** (HiDPI) — così lo lanci e basta. Su
+Cinnamon applica tema/dock/pannello nativi (senza glass/blur, che richiede picom);
+per l'esperienza "piena" con glass usa `--de xfce` (se lanciato da Cinnamon installa
+XFCE e lo imposta come sessione di login predefinita). Le opzioni servono solo per
+la messa a punto:
 
 ```bash
-./install.sh                     # auto: rileva il DPI, imposta XFCE come sessione default
+./install.sh                     # auto: tematizza il DE in uso + rileva il DPI
+./install.sh --de xfce           # ambiente XFCE pieno (glass/blur via picom)
+./install.sh --de cinnamon       # forza il path nativo Cinnamon
 ./install.sh --dpi 192           # forza una scala specifica (override dell'auto)
 ./install.sh --no-scale          # non toccare la scala
 ./install.sh --greeter --plymouth   # installa anche login screen e boot splash
@@ -56,9 +61,9 @@ basta rientrare, senza flag. Le opzioni servono solo per la messa a punto:
 ```
 
 **Importante**: lancia lo script **come utente normale**, NON con `sudo` (chiederà
-lui la password dove serve: pacchetti, greeter, plymouth). Poi fai semplicemente
-**logout/login**: XFCE è già la sessione predefinita, e pannello/scorciatoie/autostart
-si applicano ad essa.
+lui la password dove serve: pacchetti, greeter, plymouth). Poi fai **logout/login**
+per applicare pannello/scorciatoie/autostart. Con `--de xfce` lanciato da Cinnamon,
+al rientro scegli (o trovi già impostata) la sessione **Xfce**.
 
 ### Opzioni principali
 

@@ -2,3 +2,6 @@
 *.pyc
 __pycache__/
 *.swp
+
+# Font Apple SF Pro copiati dallo step greeter (non redistribuibili)
+assets/greeter/macos/resources/font/SF-Pro-*.otf

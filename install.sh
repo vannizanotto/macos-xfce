@@ -23,19 +23,23 @@ DO_SCALING=1; DO_PICOM=1; DO_ANIM=1; DO_POWER=1; DO_CORNERS=1
 DO_TOUCHEGG=1; DO_NOTIFY=1; DO_WALLPAPER=1; DO_GREETER=0; DO_PLYMOUTH=0
 DO_WHITESUR=1
 DO_INPUT=1; DO_FINDER=1; DO_EMOJI=1; DO_DYNWALL=1
-# Ambiente macOS UNIVERSALE = XFCE+picom: è l'unico compositor che fa glass/blur,
-# bordi arrotondati e ombre come su macOS (Muffin di Cinnamon NON sa fare blur).
-# Quindi anche su una base Cinnamon il look macOS gira in una sessione XFCE.
-# --de cinnamon = path nativo Cinnamon (tema/dock/pannello ma SENZA glass).
-# --de auto     = usa il DE attualmente in esecuzione (rilevato).
-DE_TARGET="xfce"
+# Di default (auto) tematizziamo il desktop ATTUALMENTE in uso (rilevato da
+# de_detect in lib/de.sh): così "lancia e basta" funziona sia su Cinnamon sia su
+# XFCE, senza lasciare l'utente Cinnamon davanti a un desktop non tematizzato né
+# dirottargli a sorpresa la sessione di login.
+# --de xfce     = ambiente macOS "pieno": XFCE+picom, l'unico compositor con
+#                 glass/blur, angoli arrotondati e ombre (Muffin di Cinnamon NON
+#                 fa blur). Se lanciato da Cinnamon installa XFCE e lo imposta
+#                 come sessione predefinita (richiede logout/login).
+# --de cinnamon = path nativo Cinnamon (tema/dock/pannello, ma SENZA glass).
+DE_TARGET="auto"
 
 usage() {
   cat <<EOF
 Uso: ./install.sh [opzioni]
 
-  --de TARGET        ambiente macOS: xfce (default, glass pieno via picom),
-                     cinnamon (nativo, senza glass), auto (usa il DE in uso).
+  --de TARGET        ambiente macOS: auto (default, tematizza il DE in uso),
+                     xfce (glass pieno via picom), cinnamon (nativo, senza glass).
   --dpi N            imposta la scala (Xft.DPI). Es: 144 (1.5x), 192 (2x), 240 (2.5x).
                      Default: AUTO-rilevata dalla densità dello schermo.
   --no-scale         non toccare la scala (disattiva l'auto-DPI).

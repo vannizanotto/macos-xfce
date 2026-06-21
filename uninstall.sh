@@ -21,6 +21,40 @@ if have xfconf-query; then
   xq -c xsettings -p /Xft/RGBA -s rgb 2>/dev/null || true
 fi
 
+# Ripristino Cinnamon: l'installer su Cinnamon applica tema/icone/cursori/wm/
+# pannello/scroll/wallpaper via gsettings; qui li riportiamo ai default con
+# 'gsettings reset' (reversibile e indipendente dal tema della distro).
+if have gsettings; then
+  step "Ripristino impostazioni Cinnamon"
+  # greset SCHEMA KEY [KEY...] — resetta solo se lo schema è installato e la chiave scrivibile
+  greset() {
+    local schema="$1"; shift
+    gsettings list-schemas 2>/dev/null | grep -qx "$schema" || return 0
+    local key
+    for key in "$@"; do
+      gsettings writable "$schema" "$key" >/dev/null 2>&1 && \
+        gsettings reset "$schema" "$key" 2>/dev/null || true
+    done
+  }
+  greset org.cinnamon.desktop.interface gtk-theme icon-theme cursor-theme \
+                                        font-name text-scaling-factor scaling-factor
+  greset org.cinnamon.theme name
+  greset org.cinnamon.desktop.wm.preferences theme titlebar-font button-layout
+  greset org.cinnamon.desktop.background picture-uri picture-options
+  greset org.cinnamon.desktop.peripherals.touchpad natural-scroll
+  greset org.cinnamon.desktop.peripherals.mouse natural-scroll
+  greset org.nemo.desktop computer-icon-visible home-icon-visible trash-icon-visible \
+                          volumes-visible network-icon-visible
+  greset org.cinnamon panels-enabled panels-height panel-zone-icon-sizes \
+                      enabled-applets next-applet-id hotcorner-layout
+  # Plank (dconf): ripristina il dump fatto dall'installer prima di toccarlo.
+  if have dconf && [ -e "$HOME/.config/plank/dconf-plank.macos-bak" ]; then
+    dconf load /net/launchpad/plank/ < "$HOME/.config/plank/dconf-plank.macos-bak" 2>/dev/null \
+      && ok "impostazioni Plank ripristinate" || true
+  fi
+  ok "impostazioni Cinnamon ripristinate (logout/login per applicare il pannello)"
+fi
+
 # dynamic wallpaper: disattiva il timer utente
 if have systemctl; then
   systemctl --user disable --now macos-dynamic-wallpaper.timer 2>/dev/null || true

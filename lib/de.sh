@@ -143,16 +143,24 @@ de_set_title_font() {  # "SF Pro Display Semibold 10"
 }
 
 # --- scala display ----------------------------------------------------------
-# NB semantica diversa: XFCE usa Xft.DPI (intero, 96=1x). Cinnamon usa
-# text-scaling-factor (float, 1.0=1x). Convertiamo DPI/96.
+# NB semantica diversa: XFCE usa Xft.DPI (intero, 96=1x). Cinnamon scala l'INTERA
+# UI con scaling-factor (uint: 0=auto,1,2), mentre text-scaling-factor ridimensiona
+# SOLO i font. Usare solo text-scaling darebbe testo grande ma icone/widget piccoli
+# (non un vero "2x"): per l'HiDPI pieno serve scaling-factor=2. Per densità
+# intermedie (no fractional pulito via gsettings) ripieghiamo sul testo.
 de_set_scaling() {  # DPI
   [ -n "$1" ] || return 0
   case "$DE" in
     xfce) xfconf-query -c xsettings -p /Xft/DPI -t int -s "$1" --create;;
     cinnamon)
-      local f
-      f="$(awk "BEGIN{printf \"%.2f\", $1/96}")"
-      gset org.cinnamon.desktop.interface text-scaling-factor "$f"
+      if [ "$1" -ge 192 ]; then
+        gset org.cinnamon.desktop.interface scaling-factor 2
+        gset org.cinnamon.desktop.interface text-scaling-factor 1.0
+      else
+        local f; f="$(awk "BEGIN{printf \"%.2f\", $1/96}")"
+        gset org.cinnamon.desktop.interface scaling-factor 1
+        gset org.cinnamon.desktop.interface text-scaling-factor "$f"
+      fi
       ;;
   esac
 }
