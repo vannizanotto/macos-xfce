@@ -47,6 +47,28 @@ if have gsettings; then
                           volumes-visible network-icon-visible
   greset org.cinnamon panels-enabled panels-height panel-zone-icon-sizes \
                       enabled-applets next-applet-id hotcorner-layout
+  # Scorciatoie macOS (Spotlight/Emoji): azzera lo schema relocatable e togli i
+  # NOSTRI slot da custom-list, lasciando intatti i custom dell'utente.
+  _kbschema="org.cinnamon.desktop.keybindings.custom-keybinding"
+  for _kb in macos-spotlight macos-emoji; do
+    gsettings reset-recursively "$_kbschema:/org/cinnamon/desktop/keybindings/custom-keybindings/$_kb/" 2>/dev/null || true
+  done
+  if have python3; then
+    python3 - <<'PY' 2>/dev/null || true
+import subprocess, ast
+try:
+    cur = subprocess.check_output(['gsettings','get','org.cinnamon.desktop.keybindings','custom-list']).decode().strip()
+    lst = ast.literal_eval(cur) if cur and cur != '@as []' else []
+    lst = [x for x in lst if x not in ('macos-spotlight','macos-emoji')]
+    subprocess.run(['gsettings','set','org.cinnamon.desktop.keybindings','custom-list', str(lst)])
+except Exception:
+    pass
+PY
+  fi
+  # Applet Cinnamenu copiato dall'installer (menu limone). NB: lo rimuove anche se
+  # l'utente lo usava da prima — è una disinstallazione del tema.
+  rm -rf "$HOME/.local/share/cinnamon/applets/Cinnamenu@json" \
+         "$HOME/.config/cinnamon/spices/Cinnamenu@json" 2>/dev/null || true
   # Plank (dconf): ripristina il dump fatto dall'installer prima di toccarlo.
   if have dconf && [ -e "$HOME/.config/plank/dconf-plank.macos-bak" ]; then
     dconf load /net/launchpad/plank/ < "$HOME/.config/plank/dconf-plank.macos-bak" 2>/dev/null \
@@ -69,7 +91,8 @@ rm -f "$HOME/.config/autostart/picom.desktop" \
 rm -f "$HOME/.local/bin/macos-power-dialog" "$HOME/.local/bin/macos-hot-corners" \
       "$HOME/.local/bin/macos-natural-scroll.sh" "$HOME/.local/bin/macos-clock-genmon.sh" \
       "$HOME/.local/bin/gsimplecal-toggle.sh" \
-      "$HOME/.local/bin/macos-emoji.sh" "$HOME/.local/bin/macos-dynamic-wallpaper.sh" \
+      "$HOME/.local/bin/macos-emoji.sh" "$HOME/.local/bin/macos-spotlight.sh" \
+      "$HOME/.local/bin/macos-dynamic-wallpaper.sh" \
       "$HOME/.local/bin/macos-xfce-firstrun.sh"
 rm -f "$HOME/.config/systemd/user/macos-dynamic-wallpaper.service" \
       "$HOME/.config/systemd/user/macos-dynamic-wallpaper.timer"
@@ -98,6 +121,15 @@ if confirm "Ripristinare il boot splash di default (mint-logo)?"; then
       /usr/share/plymouth/themes/mint-logo/mint-logo.plymouth && as_root update-initramfs -u
   else
     warn "tema mint-logo non trovato; scegli un altro default con update-alternatives --config default.plymouth"
+  fi
+fi
+
+# Su una sessione Cinnamon viva, offri il riavvio della shell per applicare subito
+# il ripristino (pannello/applet/scorciatoie si ricaricano all'avvio della shell).
+if have gsettings && [ -n "${DISPLAY:-}" ] && pgrep -x cinnamon >/dev/null 2>&1; then
+  if confirm "Riavviare Cinnamon ora per applicare subito il ripristino?"; then
+    setsid bash -c 'cinnamon --replace' >/dev/null 2>&1 &
+    ok "Cinnamon riavviato"
   fi
 fi
 
