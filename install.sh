@@ -396,7 +396,7 @@ c_panel() {
       dconf write /org/cinnamon/panels-enabled "['1:0:top']"
       dconf write /org/cinnamon/panels-height "['1:28']"
       dconf write /org/cinnamon/panel-zone-icon-sizes '"[{\"panelId\": 1, \"left\": 0, \"center\": 0, \"right\": 20}]"'
-      dconf write /org/cinnamon/enabled-applets "['panel1:left:0:Cinnamenu@json:999', 'panel1:center:0:calendar@cinnamon.org:13', 'panel1:right:0:systray@cinnamon.org:3', 'panel1:right:1:xapp-status@cinnamon.org:4', 'panel1:right:2:notifications@cinnamon.org:5', 'panel1:right:3:removable-drives@cinnamon.org:7', 'panel1:right:4:keyboard@cinnamon.org:8', 'panel1:right:5:network@cinnamon.org:10', 'panel1:right:6:sound@cinnamon.org:11', 'panel1:right:7:power@cinnamon.org:12', 'panel1:right:8:cornerbar@cinnamon.org:14']"
+      dconf write /org/cinnamon/enabled-applets "['panel1:left:0:Cinnamenu@json:999', 'panel1:center:0:calendar@cinnamon.org:13', 'panel1:right:0:systray@cinnamon.org:3', 'panel1:right:1:xapp-status@cinnamon.org:4', 'panel1:right:2:notifications@cinnamon.org:5', 'panel1:right:3:removable-drives@cinnamon.org:7', 'panel1:right:4:keyboard@cinnamon.org:8', 'panel1:right:5:network@cinnamon.org:10', 'panel1:right:6:sound@cinnamon.org:11', 'panel1:right:7:power@cinnamon.org:12']"
       dconf write /org/cinnamon/next-applet-id 15
     fi
     warn "pannello Cinnamon: si applica al prossimo login (Cinnamon carica applet+tema all'avvio sessione); per applicare subito: cinnamon --replace"

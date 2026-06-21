@@ -4,5 +4,5 @@
 panels-enabled=['1:0:top']
 panels-height=['1:28']
 panel-zone-icon-sizes='[{"panelId": 1, "left": 0, "center": 0, "right": 20}]'
-enabled-applets=['panel1:left:0:Cinnamenu@json:999', 'panel1:center:0:calendar@cinnamon.org:13', 'panel1:right:0:systray@cinnamon.org:3', 'panel1:right:1:xapp-status@cinnamon.org:4', 'panel1:right:2:notifications@cinnamon.org:5', 'panel1:right:3:removable-drives@cinnamon.org:7', 'panel1:right:4:keyboard@cinnamon.org:8', 'panel1:right:5:network@cinnamon.org:10', 'panel1:right:6:sound@cinnamon.org:11', 'panel1:right:7:power@cinnamon.org:12', 'panel1:right:8:cornerbar@cinnamon.org:14']
-next-applet-id=15
+enabled-applets=['panel1:left:0:Cinnamenu@json:999', 'panel1:center:0:calendar@cinnamon.org:13', 'panel1:right:0:systray@cinnamon.org:3', 'panel1:right:1:xapp-status@cinnamon.org:4', 'panel1:right:2:notifications@cinnamon.org:5', 'panel1:right:3:removable-drives@cinnamon.org:7', 'panel1:right:4:keyboard@cinnamon.org:8', 'panel1:right:5:network@cinnamon.org:10', 'panel1:right:6:sound@cinnamon.org:11', 'panel1:right:7:power@cinnamon.org:12']
+next-applet-id=14
