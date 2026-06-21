@@ -255,8 +255,10 @@ c_theme() {
       # lascia queste variabili vuote e la compilazione del tema gnome-shell fallisce.
       # NB: NIENTE -l/--libadwaita: quel flag installa SOLO la config gtk-4.0 per
       # libadwaita (app GNOME), non il tema GTK3/xfwm4 che serve a XFCE.
+      # Installiamo ENTRAMBE le varianti (-c Light -c Dark): la chiara è il default,
+      # la scura serve all'appearance dinamica giorno/notte (c_dynwall).
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git "$tmp/gtk" \
-        && (cd "$tmp/gtk" && SHELL_VERSION=48 GNOME_VERSION=48-0 ./install.sh -c Light -t default) || warn "WhiteSur GTK ko"
+        && (cd "$tmp/gtk" && SHELL_VERSION=48 GNOME_VERSION=48-0 ./install.sh -c Light -c Dark -t default) || warn "WhiteSur GTK ko"
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-icon-theme.git "$tmp/icon" \
         && (cd "$tmp/icon" && ./install.sh) || warn "WhiteSur icone ko"
       git clone --depth=1 https://github.com/vinceliuice/WhiteSur-cursors.git "$tmp/cur" \
@@ -880,14 +882,17 @@ c_emoji() {
 }
 
 c_dynwall() {
-  [ "$DE" = xfce ] || { dim "dynamic wallpaper: solo XFCE"; return 0; }
+  # Appearance dinamica (chiaro di giorno, scuro di notte): tema + wallpaper.
+  # Dual-DE ora (XFCE e Cinnamon) tramite macos-appearance.sh. Lo switch del TEMA
+  # scuro avviene solo se WhiteSur-Dark è installato (c_theme lo installa); senza,
+  # cambia solo il wallpaper e il tema resta chiaro.
   if [ -n "${WALLPAPER:-}" ]; then
-    dim "wallpaper personalizzato (--wallpaper): salto il dynamic wallpaper per non sovrascriverlo"
+    dim "wallpaper personalizzato (--wallpaper): salto l'appearance dinamica per non sovrascriverlo"
     return 0
   fi
-  have systemctl || { dim "systemd non disponibile: salto il dynamic wallpaper"; return 0; }
-  step "Dynamic wallpaper (chiaro di giorno, scuro di notte)"
-  install -Dm755 "$ASSETS/bin/macos-dynamic-wallpaper.sh" "$HOME/.local/bin/macos-dynamic-wallpaper.sh"
+  have systemctl || { dim "systemd non disponibile: salto l'appearance dinamica"; return 0; }
+  step "Appearance dinamica (chiaro di giorno, scuro di notte)"
+  install -Dm755 "$ASSETS/bin/macos-appearance.sh" "$HOME/.local/bin/macos-appearance.sh"
   # serve una coppia chiaro/scuro: i gradienti liberi inclusi nel pacchetto
   mkdir -p "$HOME/.local/share/wallpapers"
   local g
@@ -902,7 +907,12 @@ c_dynwall() {
   systemctl --user daemon-reload 2>/dev/null || true
   systemctl --user enable --now macos-dynamic-wallpaper.timer 2>/dev/null \
     || warn "timer non avviato (sessione senza systemd user?)"
-  ok "dynamic wallpaper (timer ogni 30 min)"
+  # toggle manuale chiaro/scuro su Cinnamon: Super+Shift+D (su XFCE va in scorciatoie XML)
+  [ "$DE" = cinnamon ] && \
+    de_add_keybinding macos-darkmode "macOS Dark Mode" "$HOME/.local/bin/macos-appearance.sh toggle" "<Super><Shift>d"
+  # applica subito lo stato giusto per l'ora corrente
+  "$HOME/.local/bin/macos-appearance.sh" auto 2>/dev/null || true
+  ok "appearance dinamica (timer ogni 30 min; toggle Super+Shift+D su Cinnamon)"
 }
 
 ###############################################################################

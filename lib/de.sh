@@ -281,13 +281,19 @@ de_add_keybinding() {
   gsettings set "$schema:$path" name "$name"     2>/dev/null || true
   gsettings set "$schema:$path" command "$cmd"   2>/dev/null || true
   gsettings set "$schema:$path" binding "['$bind']" 2>/dev/null || true
-  # assicura che lo slot sia presente in custom-list (senza duplicarlo)
-  local cur; cur="$(gsettings get org.cinnamon.desktop.keybindings custom-list 2>/dev/null)"
-  case "$cur" in
-    *"'$slot'"*) : ;;                                              # già presente
-    "@as []"|"[]"|"['']"|"") gsettings set org.cinnamon.desktop.keybindings custom-list "['$slot']" 2>/dev/null || true ;;
-    *) gsettings set org.cinnamon.desktop.keybindings custom-list "${cur%]*}, '$slot']" 2>/dev/null || true ;;
-  esac
+  # Aggiungi lo slot a custom-list (senza duplicarlo). Le scritture dconf in rapida
+  # successione possono PERDERSI (race: dconf coalesce / cinnamon normalizza la
+  # lista): verifichiamo e ritentiamo finché lo slot non "regge".
+  local cur try
+  for try in 1 2 3 4 5; do
+    cur="$(gsettings get org.cinnamon.desktop.keybindings custom-list 2>/dev/null)"
+    case "$cur" in *"'$slot'"*) break ;; esac          # già presente -> fatto
+    case "$cur" in
+      "@as []"|"[]"|"['']"|"") gsettings set org.cinnamon.desktop.keybindings custom-list "['$slot']" 2>/dev/null || true ;;
+      *) gsettings set org.cinnamon.desktop.keybindings custom-list "${cur%]*}, '$slot']" 2>/dev/null || true ;;
+    esac
+    sleep 0.3
+  done
 }
 
 # --- compositor: serve picom? -----------------------------------------------

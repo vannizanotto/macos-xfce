@@ -50,7 +50,7 @@ if have gsettings; then
   # Scorciatoie macOS (Spotlight/Emoji): azzera lo schema relocatable e togli i
   # NOSTRI slot da custom-list, lasciando intatti i custom dell'utente.
   _kbschema="org.cinnamon.desktop.keybindings.custom-keybinding"
-  for _kb in macos-spotlight macos-emoji; do
+  for _kb in macos-spotlight macos-emoji macos-darkmode; do
     gsettings reset-recursively "$_kbschema:/org/cinnamon/desktop/keybindings/custom-keybindings/$_kb/" 2>/dev/null || true
   done
   if have python3; then
@@ -92,7 +92,7 @@ rm -f "$HOME/.local/bin/macos-power-dialog" "$HOME/.local/bin/macos-hot-corners"
       "$HOME/.local/bin/macos-natural-scroll.sh" "$HOME/.local/bin/macos-clock-genmon.sh" \
       "$HOME/.local/bin/gsimplecal-toggle.sh" \
       "$HOME/.local/bin/macos-emoji.sh" "$HOME/.local/bin/macos-spotlight.sh" \
-      "$HOME/.local/bin/macos-dynamic-wallpaper.sh" \
+      "$HOME/.local/bin/macos-dynamic-wallpaper.sh" "$HOME/.local/bin/macos-appearance.sh" \
       "$HOME/.local/bin/macos-xfce-firstrun.sh"
 rm -f "$HOME/.config/systemd/user/macos-dynamic-wallpaper.service" \
       "$HOME/.config/systemd/user/macos-dynamic-wallpaper.timer"
