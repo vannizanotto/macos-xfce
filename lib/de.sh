@@ -251,6 +251,31 @@ de_set_desktop_icons_off() {
   esac
 }
 
+# --- scorciatoie da tastiera personalizzate ---------------------------------
+# Su XFCE le scorciatoie sono cablate nello XML (c_panel); qui gestiamo SOLO
+# Cinnamon, che usa lo schema relocatable custom-keybinding + la lista custom-list.
+# Idempotente: usa uno SLOT fisso (es. "custom90"), quindi ri-eseguire sovrascrive
+# la stessa voce invece di duplicarla. Niente conflitti con i custom0..N dell'utente.
+# Uso: de_add_keybinding SLOT NAME COMMAND BINDING   (BINDING es. "<Super>space")
+de_add_keybinding() {
+  [ "$DE" = cinnamon ] || return 0
+  have gsettings || return 0
+  local slot="$1" name="$2" cmd="$3" bind="$4"
+  local schema="org.cinnamon.desktop.keybindings.custom-keybinding"
+  local path="/org/cinnamon/desktop/keybindings/custom-keybindings/$slot/"
+  gsettings list-schemas 2>/dev/null | grep -qx org.cinnamon.desktop.keybindings || return 0
+  gsettings set "$schema:$path" name "$name"     2>/dev/null || true
+  gsettings set "$schema:$path" command "$cmd"   2>/dev/null || true
+  gsettings set "$schema:$path" binding "['$bind']" 2>/dev/null || true
+  # assicura che lo slot sia presente in custom-list (senza duplicarlo)
+  local cur; cur="$(gsettings get org.cinnamon.desktop.keybindings custom-list 2>/dev/null)"
+  case "$cur" in
+    *"'$slot'"*) : ;;                                              # già presente
+    "@as []"|"[]"|"['']"|"") gsettings set org.cinnamon.desktop.keybindings custom-list "['$slot']" 2>/dev/null || true ;;
+    *) gsettings set org.cinnamon.desktop.keybindings custom-list "${cur%]*}, '$slot']" 2>/dev/null || true ;;
+  esac
+}
+
 # --- compositor: serve picom? -----------------------------------------------
 # Su Cinnamon c'è già Muffin: picom NON va installato (si pesterebbero i piedi).
 de_needs_picom() { [ "$DE" = xfce ]; }

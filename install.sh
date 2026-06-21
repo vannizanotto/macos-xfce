@@ -856,12 +856,23 @@ c_finder() {
 }
 
 c_emoji() {
-  [ "$DE" = xfce ] || { dim "emoji picker: scorciatoia via xfconf (solo XFCE)"; return 0; }
-  step "Emoji picker (Super+Ctrl+Spazio)"
-  install -Dm755 "$ASSETS/bin/macos-emoji.sh" "$HOME/.local/bin/macos-emoji.sh"
-  have rofi || dim "rofi non installato: il picker non si aprirà finché non lo installi"
-  dim "scorciatoia Super+Ctrl+Spazio cablata nello XML delle scorciatoie (c_panel)"
-  ok "emoji picker installato"
+  step "Spotlight (Super+Spazio) + Emoji picker (Super+Ctrl+Spazio)"
+  install -Dm755 "$ASSETS/bin/macos-emoji.sh"     "$HOME/.local/bin/macos-emoji.sh"
+  install -Dm755 "$ASSETS/bin/macos-spotlight.sh" "$HOME/.local/bin/macos-spotlight.sh"
+  have rofi    || dim "rofi non installato: Spotlight/emoji non si apriranno finché non lo installi (apt install rofi)"
+  have xdotool || dim "xdotool non installato: l'emoji picker non digiterà il simbolo (apt install xdotool)"
+  case "$DE" in
+    xfce)
+      dim "scorciatoie Super+Spazio / Super+Ctrl+Spazio cablate nello XML (c_panel)"
+      ;;
+    cinnamon)
+      # slot fissi alti per non collidere coi custom0..N dell'utente
+      de_add_keybinding macos-spotlight "macOS Spotlight" "$HOME/.local/bin/macos-spotlight.sh" "<Super>space"
+      de_add_keybinding macos-emoji     "macOS Emoji"     "$HOME/.local/bin/macos-emoji.sh"     "<Super><Control>space"
+      ok "scorciatoie Cinnamon: Spotlight=Super+Spazio, Emoji=Super+Ctrl+Spazio"
+      ;;
+  esac
+  ok "Spotlight + emoji picker installati"
 }
 
 c_dynwall() {
