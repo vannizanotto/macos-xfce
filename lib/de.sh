@@ -228,6 +228,20 @@ de_set_hot_corners() {
   esac
 }
 
+# --- animazioni finestre stile macOS (solo Cinnamon) ------------------------
+# Apertura/chiusura con "scale" (cresce/rimpicciolisce dal centro, come macOS) e
+# velocità rapida. La minimizzazione resta "traditional" (verso il dock, l'effetto
+# più vicino al genie). Su XFCE gli effetti li fa picom, quindi qui no-op.
+# NB: la trasparenza/blur del pannello NON è una chiave gsettings: la decide il
+# tema Cinnamon (WhiteSur), non si imposta da qui.
+de_set_macos_effects() {
+  [ "$DE" = cinnamon ] || return 0
+  gset org.cinnamon desktop-effects true
+  gset org.cinnamon desktop-effects-map scale
+  gset org.cinnamon desktop-effects-close scale
+  gset org.cinnamon window-effect-speed 2
+}
+
 # --- desktop pulito (niente icone Computer/Home/Cestino, come macOS) ---------
 de_set_desktop_icons_off() {
   case "$DE" in

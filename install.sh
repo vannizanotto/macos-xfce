@@ -632,7 +632,11 @@ c_power() {
 c_corners() {
   step "Hot corners + Mission Control"
   de_set_hot_corners
-  [ "$DE" = "cinnamon" ] && { ok "hot corners configurati nativamente"; return 0; }
+  if [ "$DE" = "cinnamon" ]; then
+    de_set_macos_effects
+    ok "hot corners + animazioni macOS (scale, rapide)"
+    return 0
+  fi
   install -Dm755 "$ASSETS/bin/macos-hot-corners" "$HOME/.local/bin/macos-hot-corners"
   cat > "$HOME/.config/autostart/macos-hot-corners.desktop" <<EOF
 [Desktop Entry]
