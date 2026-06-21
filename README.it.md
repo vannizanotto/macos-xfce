@@ -83,11 +83,58 @@ al rientro scegli (o trovi già impostata) la sessione **Xfce**.
 Componenti per `--only`: `packages,theme,sfpro,panel,dock,scaling,picom,power,corners,touchegg,notify,wallpaper,input,finder,emoji,dynwall,greeter,plymouth`.
 
 I componenti `input`, `finder`, `emoji` e `dynwall` aggiungono, rispettivamente: scroll
-naturale stile macOS, un Thunar in stile Finder con Quick Look (Spazio → gnome-sushi),
-un selettore emoji (Super+Ctrl+Spazio, rofi+xdotool) e un wallpaper dinamico chiaro/scuro
-(timer systemd utente). Il menu Apple usa una CSS chiara/frosted
+naturale stile macOS, un Thunar in stile Finder con Quick Look (Spazio → gnome-sushi, solo
+XFCE), **Spotlight + selettore emoji** (rofi+xdotool) e l'**appearance dinamica** chiaro/scuro
+(tema + wallpaper, timer systemd utente). Su XFCE il menu Apple usa una CSS chiara/frosted
 (`~/.config/macos-xfce/apple-menu.css`) e l'orologio del pannello è un applet genmon che
-apre `gsimplecal` al click.
+apre `gsimplecal` al click. Per cosa cambia tra i due desktop, vedi la sezione sotto.
+
+## XFCE o Cinnamon: cosa cambia
+
+Con `--de auto` (default) viene tematizzato il desktop **in uso**. Le due strade danno
+lo stesso look di base — WhiteSur, SF Pro, dock Plank, pulsanti finestra a sinistra,
+scroll naturale, desktop pulito — ma differiscono qui:
+
+| | **XFCE** (`--de xfce`) | **Cinnamon** (`--de cinnamon`) |
+|---|---|---|
+| Vetro / blur / ombre / angoli | ✅ via **picom** | ❌ Muffin non fa blur |
+| Menu bar in alto | pannello XFCE + global menu app | pannello Cinnamon (Cinnamenu) |
+| Spotlight | scorciatoia → rofi | `Super+Spazio` → rofi |
+| Emoji picker | `Super+Ctrl+Spazio` | `Super+Ctrl+Spazio` |
+| Tema chiaro/scuro | timer giorno/notte | `Super+Shift+D` + timer giorno/notte |
+| Animazioni finestre | picom | effetti Cinnamon (`scale`, rapide) |
+| Hot corners / Mission Control | xfdashboard | nativi Cinnamon (expo/scale) |
+
+> Il **glass/blur** (vetro, ombre morbide, angoli arrotondati) è ottenibile **solo su
+> XFCE** con picom: il compositor Muffin di Cinnamon non supporta il blur. È l'unica
+> differenza estetica che non si può colmare su Cinnamon.
+
+### Scorciatoie su Cinnamon
+
+| Scorciatoia | Azione |
+|---|---|
+| `Super+Spazio` | Spotlight (lanciatore rofi) |
+| `Super+Ctrl+Spazio` | Selettore emoji |
+| `Super+Shift+D` | Inverti tema chiaro/scuro |
+
+Vengono registrate via `org.cinnamon.desktop.keybindings`. Se non rispondono subito dopo
+l'installazione, fai **logout/login** (la shell rilegge le scorciatoie all'avvio della
+sessione).
+
+### Appearance dinamica (chiaro di giorno, scuro di notte)
+
+Il componente `dynwall` installa un timer systemd utente che ogni 30 min lancia
+`macos-appearance.sh auto`: dalle **07 alle 19** tema + wallpaper chiari, altrimenti scuri.
+Per cambiare a mano:
+
+```bash
+macos-appearance.sh light    # forza chiaro
+macos-appearance.sh dark     # forza scuro
+macos-appearance.sh toggle   # inverti (è ciò che fa Super+Shift+D)
+```
+
+Lo switch al tema scuro richiede la variante **`WhiteSur-Dark`**, installata da `c_theme`
+(`-c Light -c Dark`); se manca, cambia solo il wallpaper e il tema resta chiaro.
 
 ## Login screen (nody-greeter)
 
@@ -143,17 +190,21 @@ pannello/scorciatoie. Temi, icone e font vanno rimossi a mano (istruzioni a fine
 
 ```
 install.sh        orchestratore (una funzione per componente, idempotente)
-uninstall.sh      ripristino
+uninstall.sh      ripristino (XFCE via xfconf, Cinnamon via gsettings)
 lib/common.sh     helper (log, sudo, backup, conferme)
+lib/de.sh         astrazione desktop: XFCE (xfconf) vs Cinnamon (gsettings/dconf)
 assets/
   greeter/        tema del login (SF Pro scaricati a parte) + deploy script
   plymouth/       tema boot splash + generatore asset
-  bin/            macos-power-dialog, macos-hot-corners
-  picom/          picom.conf, picom-anim.conf
+  bin/            macos-power-dialog, macos-hot-corners, macos-spotlight.sh,
+                  macos-appearance.sh (chiaro/scuro), macos-emoji.sh, …
+  cinnamon/       applet Cinnamenu@json + panel-layout.dconf (menu bar Cinnamon)
+  systemd/        timer/service utente per l'appearance dinamica
+  picom/          picom.conf, picom-anim.conf (solo XFCE)
   gtk-3.0/        gtk.css (pannello scuro), settings.ini (mnemonics off)
   touchegg/       gesture
   themes/macOS/   temi notifiche + xfdashboard
-  xfconf/         XML pannello + scorciatoie (layout della menu bar)
+  xfconf/         XML pannello + scorciatoie XFCE (layout della menu bar)
   panel-launchers/ launcher del pannello (Spotlight…)
   patches/        flatten-corners.py, battery-fix.sh
   icons/          lemon-logo.svg (logo del menu, Noto Emoji Apache-2.0)
