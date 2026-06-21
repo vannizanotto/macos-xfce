@@ -36,22 +36,26 @@ Se preferisci clonare il repository manualmente:
 ```bash
 git clone https://github.com/vannizanotto/macos-xfce.git ~/.macos-xfce
 cd ~/.macos-xfce
-./install.sh                 # base (senza login screen né boot splash)
+./install.sh --de xfce       # CONSIGLIATO: look macOS completo (glass/blur/angoli)
 ```
+
+> **👉 Consigliato: `--de xfce`.** Il look macOS *fedele* — vetro/blur, angoli
+> arrotondati a tutti e 4 i lati, ombre morbide, menu globale dell'app nella barra in
+> alto — gira solo in **XFCE** (con picom). È l'ambiente per cui il progetto è nato.
+> Lanciato da un'altra sessione installa XFCE e lo imposta come login predefinito:
+> basta fare logout e scegliere **Xfce**.
 
 ### Esempi:
 
-Di default l'installer **tematizza il desktop in cui sei** (rileva XFCE o Cinnamon)
-e **rileva da solo la scala dello schermo** (HiDPI) — così lo lanci e basta. Su
-Cinnamon applica tema/dock/pannello nativi (senza glass/blur, che richiede picom);
-per l'esperienza "piena" con glass usa `--de xfce` (se lanciato da Cinnamon installa
-XFCE e lo imposta come sessione di login predefinita). Le opzioni servono solo per
-la messa a punto:
+Il default `auto` (senza flag) tematizza il desktop **in cui sei** e rileva la **scala**
+(HiDPI) — comodo, ma su Cinnamon resta "piatto": niente glass/blur né angoli tondi in
+basso (è un limite di Muffin, non del tema). Per la fedeltà piena usa `--de xfce`. Le
+opzioni servono solo per la messa a punto:
 
 ```bash
+./install.sh --de xfce           # CONSIGLIATO: ambiente XFCE pieno (glass/blur/angoli)
 ./install.sh                     # auto: tematizza il DE in uso + rileva il DPI
-./install.sh --de xfce           # ambiente XFCE pieno (glass/blur via picom)
-./install.sh --de cinnamon       # forza il path nativo Cinnamon
+./install.sh --de cinnamon       # forza il path nativo Cinnamon (senza glass)
 ./install.sh --dpi 192           # forza una scala specifica (override dell'auto)
 ./install.sh --no-scale          # non toccare la scala
 ./install.sh --greeter --plymouth   # installa anche login screen e boot splash
