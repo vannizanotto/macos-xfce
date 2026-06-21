@@ -199,6 +199,7 @@ c_packages() {
   local pkgs="plank dconf-cli xfce4-appmenu-plugin appmenu-gtk2-module appmenu-gtk3-module vala-panel-appmenu \
     appmenu-registrar appmenu-gtk-module-common \
     picom xfdashboard touchegg xdotool wmctrl x11-utils xinput \
+    xfce4-power-manager xfce4-power-manager-plugins xfce4-pulseaudio-plugin \
     xfce4-genmon-plugin gsimplecal gnome-sushi rofi \
     fonts-inter fonts-jetbrains-mono python3-gi gir1.2-gtk-3.0 \
     python3-cairo python3-pil git p7zip-full curl"
