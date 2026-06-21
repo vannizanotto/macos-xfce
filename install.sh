@@ -470,7 +470,7 @@ c_dock() {
 [Desktop Entry]
 Type=Application
 Name=Plank
-Exec=plank
+Exec=sh -c 'XDG_CURRENT_DESKTOP="\${XDG_CURRENT_DESKTOP:-XFCE}" XDG_SESSION_TYPE="\${XDG_SESSION_TYPE:-x11}" GDK_BACKEND=x11 exec plank'
 OnlyShowIn=XFCE;X-Cinnamon;
 X-XFCE-Autostart-enabled=true
 StartupNotify=false
