@@ -1,0 +1,50 @@
+/* Tema rofi stile macOS Spotlight: barra chiara/frosted, centrata in alto,
+ * angoli arrotondati, accento blu Apple. Usato da macos-spotlight.sh. */
+* {
+    bg:        #f4f4f6f2;   /* chiaro semi-trasparente (frosted)            */
+    bg-alt:    #00000000;
+    fg:        #1d1d1f;      /* testo grigio scuro Apple                     */
+    fg-dim:    #6e6e73;
+    accent:    #0a84ff;      /* blu macOS                                    */
+    accent-fg: #ffffff;
+    border-c:  #0000001f;
+}
+
+window {
+    width:            640px;
+    location:         north;
+    anchor:           north;
+    y-offset:         150px;
+    border:           1px;
+    border-color:     @border-c;
+    border-radius:    14px;
+    background-color: @bg;
+}
+
+mainbox  { padding: 6px; spacing: 4px; background-color: transparent; }
+
+inputbar {
+    padding:          12px 14px;
+    spacing:          10px;
+    background-color: transparent;
+    text-color:       @fg;
+}
+prompt  { text-color: @fg-dim; }
+entry   { placeholder: "Spotlight"; placeholder-color: @fg-dim; text-color: @fg; }
+
+listview {
+    lines:            8;
+    scrollbar:        false;
+    background-color: transparent;
+    spacing:          2px;
+}
+
+element {
+    padding:          9px 12px;
+    border-radius:    8px;
+    background-color: transparent;
+    text-color:       @fg;
+}
+element selected           { background-color: @accent; text-color: @accent-fg; }
+element-icon               { size: 1.1em; background-color: transparent; }
+element-text               { background-color: transparent; text-color: inherit; vertical-align: 0.5; }

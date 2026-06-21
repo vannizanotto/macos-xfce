@@ -1,7 +1,7 @@
 #!/bin/bash
 # macos-spotlight.sh — lanciatore stile Spotlight (Cmd/Super+Space) basato su rofi.
-# Mostra una barra di ricerca centrata in alto da cui avviare app e (se presente
-# rofi >= 1.6) cercare file/calcolare. Fallback morbido se rofi non c'è.
+# Mostra una barra di ricerca centrata in alto da cui avviare app. Usa il tema
+# frosted ~/.config/macos-xfce/spotlight.rasi se presente, altrimenti un fallback.
 
 if ! command -v rofi >/dev/null 2>&1; then
   command -v notify-send >/dev/null 2>&1 && \
@@ -9,12 +9,13 @@ if ! command -v rofi >/dev/null 2>&1; then
   exit 1
 fi
 
-# Aspetto "alla Spotlight": finestra stretta ancorata in alto al centro.
+THEME="$HOME/.config/macos-xfce/spotlight.rasi"
+if [ -f "$THEME" ]; then
+  exec rofi -show drun -modi drun,run -no-lazy-grab -theme "$THEME"
+fi
+
+# Fallback senza file di tema: barra stretta ancorata in alto al centro.
 exec rofi \
-  -show drun \
-  -modi drun,run \
-  -theme-str 'window { width: 42%; location: north; anchor: north; y-offset: 90px; border-radius: 12px; }
-              listview { lines: 8; }
-              inputbar { padding: 10px; }' \
-  -no-lazy-grab \
-  -p ""
+  -show drun -modi drun,run -no-lazy-grab -p "" \
+  -theme-str 'window { width: 42%; location: north; anchor: north; y-offset: 120px; border-radius: 12px; }
+              listview { lines: 8; } inputbar { padding: 10px; }'

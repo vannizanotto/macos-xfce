@@ -353,6 +353,16 @@ c_sfpro() {
     de_set_interface_font "Inter 10"
     de_set_title_font "Inter Bold 10"
   fi
+
+  # Monospace stile macOS = JetBrains Mono (incluso nei pacchetti): molto leggibile.
+  # NB: SF Mono, il mono "vero" di macOS, rende SOTTILE/strano in gnome-terminal
+  # (testato): non lo imponiamo come default. Chi lo vuole lo installa a mano.
+  if gsettings writable org.gnome.desktop.interface monospace-font-name >/dev/null 2>&1; then
+    if fc-list 2>/dev/null | grep -qi "JetBrains Mono"; then
+      gsettings set org.gnome.desktop.interface monospace-font-name "JetBrains Mono 11"
+      ok "monospace: JetBrains Mono 11"
+    fi
+  fi
 }
 
 # Le "welcome" delle distro (mintwelcome, ecc.) partono da /etc/xdg/autostart e
@@ -865,6 +875,7 @@ c_emoji() {
   step "Spotlight (Super+Spazio) + Emoji picker (Super+Ctrl+Spazio)"
   install -Dm755 "$ASSETS/bin/macos-emoji.sh"     "$HOME/.local/bin/macos-emoji.sh"
   install -Dm755 "$ASSETS/bin/macos-spotlight.sh" "$HOME/.local/bin/macos-spotlight.sh"
+  install -Dm644 "$ASSETS/rofi/spotlight.rasi"    "$HOME/.config/macos-xfce/spotlight.rasi"
   have rofi    || dim "rofi non installato: Spotlight/emoji non si apriranno finché non lo installi (apt install rofi)"
   have xdotool || dim "xdotool non installato: l'emoji picker non digiterà il simbolo (apt install xdotool)"
   case "$DE" in
