@@ -62,7 +62,7 @@
       <property name="HomePage" type="string" value="exo-open --launch WebBrowser"/>
       <property name="XF86Display" type="string" value="xfce4-display-settings --minimal"/>
       <property name="override" type="bool" value="true"/>
-      <property name="&lt;Super&gt;space" type="string" value="xfce4-appfinder --collapsed"/>
+      <property name="&lt;Super&gt;space" type="string" value="@HOME@/.local/bin/macos-spotlight.sh"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;End" type="string" value="@HOME@/.local/bin/macos-power-dialog"/>
       <property name="&lt;Primary&gt;&lt;Super&gt;space" type="string" value="@HOME@/.local/bin/macos-emoji.sh"/>
       <property name="&lt;Super&gt;&lt;Shift&gt;3" type="string" value="xfce4-screenshooter -f"/>
