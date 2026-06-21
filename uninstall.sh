@@ -115,6 +115,11 @@ step "Greeter / Plymouth (richiede sudo, opzionale)"
 if confirm "Ripristinare il greeter di login di default?"; then
   as_root rm -f /etc/lightdm/lightdm.conf.d/99-nody-greeter.conf && ok "greeter ripristinato"
 fi
+# Rimuove il default di sessione XFCE imposto dall'installer, così torna a valere
+# il default originale di Mint (cinnamon) in 70-linuxmint.conf.
+if [ -e /etc/lightdm/lightdm.conf.d/99-macos-xfce.conf ]; then
+  as_root rm -f /etc/lightdm/lightdm.conf.d/99-macos-xfce.conf && ok "default di sessione LightDM ripristinato"
+fi
 if confirm "Ripristinare il boot splash di default (mint-logo)?"; then
   if [ -e /usr/share/plymouth/themes/mint-logo/mint-logo.plymouth ]; then
     as_root update-alternatives --set default.plymouth \

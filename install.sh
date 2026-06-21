@@ -199,11 +199,28 @@ set_default_session_xfce() {
   [ -e "/usr/share/xsessions/$sess.desktop" ] || { dim "nessuna sessione xfce in /usr/share/xsessions"; return 0; }
   # ~/.dmrc (LightDM/altri lo leggono come default utente)
   printf '[Desktop]\nSession=%s\n' "$sess" > "$HOME/.dmrc"
-  # AccountsService (LightDM moderno lo preferisce) — richiede root
+  # AccountsService (LightDM moderno lo preferisce) — richiede root.
+  # NB: il daemon accounts-daemon tiene la sua copia in RAM e LightDM la legge
+  # via D-Bus, NON dal file: oltre a scrivere il file aggiorniamo anche il valore
+  # vivo con SetXSession, così la modifica vale subito senza riavviare il daemon.
   local af="/var/lib/AccountsService/users/$USER"
   if as_root test -e "$af" 2>/dev/null; then
     as_root sed -i '/^XSession=/d' "$af" 2>/dev/null || true
     as_root sh -c "printf 'XSession=%s\n' '$sess' >> '$af'" 2>/dev/null || true
+    local uid; uid="$(id -u)"
+    as_root dbus-send --system --print-reply --dest=org.freedesktop.Accounts \
+      "/org/freedesktop/Accounts/User$uid" \
+      org.freedesktop.Accounts.User.SetXSession "string:$sess" >/dev/null 2>&1 || true
+  fi
+  # Default di sistema del display manager. Su Linux Mint il file di base
+  # /etc/lightdm/lightdm.conf.d/70-linuxmint.conf impone `user-session=cinnamon`,
+  # e il greeter (nody su Mint) lo usa IGNORANDO .dmrc/AccountsService: senza
+  # questo override l'utente resta bloccato fuori (LightDM cerca la sessione
+  # "cinnamon" che abbiamo disabilitato e non la trova). Un drop-in 99-* vince
+  # sull'ordinamento lessicografico di conf.d.
+  if [ -d /etc/lightdm/lightdm.conf.d ]; then
+    as_root sh -c "printf '[Seat:*]\nuser-session=%s\n' '$sess' > /etc/lightdm/lightdm.conf.d/99-macos-xfce.conf" 2>/dev/null \
+      && dim "default LightDM: user-session=$sess (drop-in 99-macos-xfce.conf)"
   fi
   ok "sessione predefinita = $sess (al prossimo login parte XFCE)"
 }
