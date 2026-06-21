@@ -136,6 +136,20 @@ need_xfconf() { have xfconf-query || { err "xfconf-query non trovato: sei in XFC
 # creano per giunta un desktop ibrido (pannello XFCE dentro Cinnamon).
 xfce_live() { [ -n "${DISPLAY:-}" ] && pgrep -x xfwm4 >/dev/null 2>&1; }
 
+# Sessione VIVA del DE *target* (XFCE o Cinnamon). xfce_live resta per le azioni
+# XFCE-specifiche (xfconf/xfdesktop/picom); questo serve alle azioni "live" valide
+# su ENTRAMBI i DE — in pratica l'avvio di Plank, che gira anche su Cinnamon.
+# Senza, su una sessione Cinnamon viva il dock veniva configurato ma mai avviato
+# (xfce_live falso) e compariva solo al login successivo.
+de_live() {
+  [ -n "${DISPLAY:-}" ] || return 1
+  case "$DE" in
+    xfce)     pgrep -x xfwm4    >/dev/null 2>&1;;
+    cinnamon) pgrep -x cinnamon >/dev/null 2>&1;;
+    *) return 1;;
+  esac
+}
+
 # picom (backend glx) gira in modo AFFIDABILE? NO dentro una VM, con render
 # software (llvmpipe) o su GPU deboli (nouveau/NVAF): il glx CONGELA il desktop
 # o divora CPU (testato su GeForce 320M/nouveau) -> meglio il compositing interno
@@ -517,7 +531,7 @@ EOF
   fi
   # restart (non solo "avvia se assente"): un plank già attivo NON rilegge il
   # tema dopo il dconf write -> resterebbe col tema scuro di default.
-  if have plank && xfce_live; then
+  if have plank && de_live; then
     # NB: || true obbligatorio — su un'installazione fresca plank NON è in
     # esecuzione, pkill ritorna 1 e con 'set -e' aborterebbe l'installer.
     pkill -x plank 2>/dev/null || true; sleep 1
