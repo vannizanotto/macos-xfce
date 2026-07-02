@@ -82,6 +82,14 @@ if have systemctl; then
   systemctl --user disable --now macos-dynamic-wallpaper.timer 2>/dev/null || true
 fi
 
+# app GTK4/libadwaita: via il tema estratto dal gresource, ripristina il css utente
+rm -rf "$HOME/.config/gtk-4.0/whitesur-light" "$HOME/.config/gtk-4.0/whitesur-dark"
+if [ -e "$HOME/.config/gtk-4.0/gtk.css.macos-bak" ]; then
+  mv -f "$HOME/.config/gtk-4.0/gtk.css.macos-bak" "$HOME/.config/gtk-4.0/gtk.css"
+else
+  rm -f "$HOME/.config/gtk-4.0/gtk.css"
+fi
+
 step "Rimozione autostart e script utente"
 rm -f "$HOME/.config/autostart/picom.desktop" \
       "$HOME/.config/autostart/macos-hot-corners.desktop" \

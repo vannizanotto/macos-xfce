@@ -52,6 +52,16 @@ else                        GTK="WhiteSur-Light"; ICON="WhiteSur-light"; fi
 theme_exists "$GTK" || { GTK="WhiteSur-Light"; ICON="WhiteSur-light"; }
 IMG="$(pick_wall "$want" || true)"
 
+# App libadwaita/GTK4 (Calendario, Nautilus, ...): ignorano il tema di sistema,
+# leggono solo ~/.config/gtk-4.0/gtk.css. L'installer vi estrae le varianti
+# WhiteSur (whitesur-light/, whitesur-dark/): commutiamo l'@import. Le app GTK4
+# aperte NON ricaricano il css utente al volo: si aggiornano al prossimo avvio.
+g4="$HOME/.config/gtk-4.0"
+w=light; [ "$GTK" = "WhiteSur-Dark" ] && w=dark
+if [ -f "$g4/whitesur-$w/gtk.css" ] && grep -q '@import url("whitesur-' "$g4/gtk.css" 2>/dev/null; then
+  sed -i "s#@import url(\"whitesur-[a-z]*/gtk.css\")#@import url(\"whitesur-$w/gtk.css\")#" "$g4/gtk.css"
+fi
+
 case "$DE" in
   cinnamon)
     # Cinnamon preferisce la variante -solid (pannello opaco)

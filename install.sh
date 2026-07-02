@@ -125,6 +125,27 @@ theme_variant() {
   echo "$v"
 }
 
+# Estrae il CSS GTK4 compilato dal gresource di un tema WhiteSur installato in
+# una sottocartella di ~/.config/gtk-4.0 (css + assets + windows-assets, gli
+# url() interni sono relativi quindi funzionano così come sono).
+# Le app libadwaita (Calendario, Nautilus, ...) IGNORANO Net/ThemeName e leggono
+# SOLO ~/.config/gtk-4.0/gtk.css: senza questo restano su Adwaita, coi bottoni
+# grigi al posto dei semafori macOS. Il flag --libadwaita dell'installer
+# upstream fa lo stesso ma richiede il clone del repo: dal gresource funziona
+# anche con --no-whitesur, col tema già presente.
+gtk4_extract_theme() {  # gtk4_extract_theme WhiteSur-Light whitesur-light
+  local res="$HOME/.themes/$1/gtk-4.0/gtk.gresource"
+  local dest="$HOME/.config/gtk-4.0/$2" r rel
+  [ -f "$res" ] && have gresource || return 1
+  rm -rf "$dest"
+  gresource list "$res" | while read -r r; do
+    rel="${r#/org/gnome/theme/}"
+    mkdir -p "$dest/$(dirname "$rel")"
+    gresource extract "$res" "$r" > "$dest/$rel"
+  done
+  [ -f "$dest/gtk.css" ]
+}
+
 need_xfconf() { have xfconf-query || { err "xfconf-query non trovato: sei in XFCE?"; exit 1; }; }
 
 # Siamo in una sessione XFCE VIVA (xfwm4 in esecuzione)? Le azioni "live"
@@ -237,7 +258,7 @@ c_packages() {
     xfce4-power-manager xfce4-power-manager-plugins xfce4-pulseaudio-plugin \
     xfce4-genmon-plugin gsimplecal gnome-sushi rofi \
     fonts-inter fonts-jetbrains-mono python3-gi gir1.2-gtk-3.0 \
-    python3-cairo python3-pil git p7zip-full curl"
+    python3-cairo python3-pil git p7zip-full curl libglib2.0-bin"
   # Ambiente macOS = XFCE: su una base Cinnamon il desktop XFCE può mancare.
   # Installiamo il core XFCE + xfconf (serve a xfconf-query per tematizzare) così
   # l'utente potrà scegliere la sessione "Xfce" al login e avere il look macOS.
@@ -317,10 +338,20 @@ c_theme() {
   backup_once "$HOME/.config/gtk-3.0/settings.ini"
   cp "$ASSETS/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css"
   cp "$ASSETS/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
-  # accent blu Apple per app GTK4 / libadwaita
+  # tema WhiteSur per le app GTK4/libadwaita + accent blu Apple (vedi
+  # gtk4_extract_theme). La Dark serve all'appearance dinamica (c_dynwall):
+  # macos-appearance.sh commuta l'@import tra le due.
   mkdir -p "$HOME/.config/gtk-4.0"
   backup_once "$HOME/.config/gtk-4.0/gtk.css"
-  cp "$ASSETS/gtk-4.0/gtk.css" "$HOME/.config/gtk-4.0/gtk.css"
+  if gtk4_extract_theme WhiteSur-Light whitesur-light; then
+    gtk4_extract_theme WhiteSur-Dark whitesur-dark || true
+    { echo '@import url("whitesur-light/gtk.css");'; echo
+      cat "$ASSETS/gtk-4.0/gtk.css"; } > "$HOME/.config/gtk-4.0/gtk.css"
+    ok "tema libadwaita/GTK4 estratto dal gresource WhiteSur"
+  else
+    cp "$ASSETS/gtk-4.0/gtk.css" "$HOME/.config/gtk-4.0/gtk.css"
+    dim "gresource WhiteSur non trovato: app GTK4 con solo accent (bottoni Adwaita)"
+  fi
   # resa font stile Retina (antialiasing grayscale, no subpixel): fontconfig
   # (universale) + Xft/RGBA su XFCE.
   mkdir -p "$HOME/.config/fontconfig"
