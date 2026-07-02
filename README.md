@@ -121,6 +121,12 @@ Test without logging out: `nody-greeter --mode debug --theme macos` (in debug mo
   GPU acceleration (Intel/AMD/modern NVIDIA).
 - Animations require `picom-anim` (FT-Labs fork) compiled from source: the installer asks
   for confirmation; use `--no-animations` to skip.
+- **GNOME apps (GTK4/libadwaita)** such as Calendar and Nautilus ignore the system theme: the
+  installer extracts the WhiteSur CSS from the gresource into `~/.config/gtk-4.0/` for them (so
+  they get the macOS traffic lights too). After a light/dark switch they update on app restart.
+- **Gray outlines/bands around windows** after hours of use: picom-anim occasionally corrupts its
+  compositing state. Restart it:
+  `pkill -x picom-anim; picom-anim --config ~/.config/picom/picom-anim.conf &`
 - **Cinnamon support**: The installer uses an abstraction layer (`lib/de.sh`) to support both XFCE and Cinnamon natively.
 
 ## Uninstallation

@@ -122,6 +122,12 @@ Test ohne Abmelden: `nody-greeter --mode debug --theme macos` (im Debug-Modus er
   Unschärfe**. Der volle Glaslook benötigt eine Maschine mit funktionierender GPU-Beschleunigung (Intel/AMD/modernes NVIDIA).
 - Animationen erfordern `picom-anim` (FT-Labs Fork) aus dem Quellcode kompiliert: Der Installer bittet
   um Bestätigung; verwenden Sie `--no-animations` zum Überspringen.
+- **GNOME-Apps (GTK4/libadwaita)** wie Kalender und Nautilus ignorieren das Systemtheme: Der Installer
+  extrahiert für sie das WhiteSur-CSS aus der gresource nach `~/.config/gtk-4.0/` (damit auch sie die
+  macOS-Ampelknöpfe bekommen). Nach einem Hell/Dunkel-Wechsel aktualisieren sie sich beim App-Neustart.
+- **Graue Umrisse/Streifen um Fenster** nach stundenlanger Nutzung: picom-anim beschädigt gelegentlich
+  seinen Compositing-Zustand. Starten Sie es neu:
+  `pkill -x picom-anim; picom-anim --config ~/.config/picom/picom-anim.conf &`
 - **Cinnamon-Unterstützung**: Der Installer verwendet eine Abstraktionsschicht (`lib/de.sh`), um sowohl XFCE als auch Cinnamon nativ zu unterstützen.
 
 ## Deinstallation
